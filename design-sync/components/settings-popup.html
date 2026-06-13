@@ -1,0 +1,191 @@
+<!-- @dsCard group="Popup" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ChatHP — Settings popup</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #1c1f24;
+  --muted: #5c6470;
+  --border: rgba(0, 0, 0, 0.12);
+  --accent: #10b981;
+  color-scheme: light dark;
+}
+
+.theme-dark {
+    --bg: #16181c;
+    --fg: #e7e9ee;
+    --muted: #9aa1ad;
+    --border: rgba(255, 255, 255, 0.12);
+    --accent: #34d399;
+  }
+
+* { box-sizing: border-box; }
+
+.popup-body {
+  margin: 0;
+  width: 300px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main { padding: 12px 14px 10px; }
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+header img { border-radius: 5px; }
+
+h1 { font-size: 15px; margin: 0; }
+
+.ver { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+section { margin-top: 10px; }
+
+h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+h2 small, .row small { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+input[type="number"] {
+  width: 84px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: right;
+}
+
+.thresholds { display: flex; gap: 8px; }
+
+.thresholds label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.thresholds input[type="number"] { width: 100%; text-align: left; }
+
+footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#reset {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+#reset:hover { border-color: var(--muted); }
+
+#status { color: var(--accent); font-size: 12px; }
+
+.privacy {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+body { margin: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif; }
+.surface { flex: 1 1 260px; min-height: 100%; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
+.surface.dark { background: #262624; }
+.surface.light { background: #faf9f5; }
+.caption { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dark .caption { color: #9aa1ad; }
+.light .caption { color: #5c6470; }
+.popup-body { border: 1px solid rgba(127,127,127,.3); border-radius: 10px; overflow: hidden; }
+.theme-dark { background: #16181c; color: #e7e9ee; }
+</style>
+</head>
+<body>
+
+<div class="surface light"><div class="caption">light</div><div class="popup-body">
+<main>
+  <header><h1>ChatHP</h1><span class="ver">v0.2.0</span></header>
+  <section><h2>Sites</h2>
+    <label class="row"><span>claude.ai</span><input type="checkbox" checked /></label>
+    <label class="row"><span>chatgpt.com</span><input type="checkbox" checked /></label></section>
+  <section><h2>Features</h2>
+    <label class="row"><span>Handoff generator</span><input type="checkbox" checked /></label>
+    <label class="row"><span>Draft cost meter</span><input type="checkbox" checked /></label>
+    <label class="row"><span>Paste auditor</span><input type="checkbox" checked /></label></section>
+  <section><h2>Estimates</h2>
+    <label class="row"><span>Context budget <small>tokens</small></span><input type="number" value="200000" /></label>
+    <label class="row"><span>Characters per token</span><input type="number" value="3.7" /></label>
+    <label class="row"><span>Audit pastes over <small>tokens</small></span><input type="number" value="1000" /></label></section>
+  <section><h2>Health thresholds <small>% of context used</small></h2>
+    <div class="thresholds">
+      <label>Healthy &ge; <input type="number" value="40" /></label>
+      <label>Heavy &ge; <input type="number" value="70" /></label>
+      <label>Critical &ge; <input type="number" value="90" /></label></div></section>
+  <footer><button id="reset" type="button">Reset defaults</button><span id="status">Saved ✓</span></footer>
+  <div class="privacy">Estimates only &middot; 100% local &middot; nothing leaves your browser</div>
+</main></div></div>
+<div class="surface dark"><div class="caption">dark</div><div class="popup-body theme-dark">
+<main>
+  <header><h1>ChatHP</h1><span class="ver">v0.2.0</span></header>
+  <section><h2>Sites</h2>
+    <label class="row"><span>claude.ai</span><input type="checkbox" checked /></label>
+    <label class="row"><span>chatgpt.com</span><input type="checkbox" checked /></label></section>
+  <section><h2>Features</h2>
+    <label class="row"><span>Handoff generator</span><input type="checkbox" checked /></label>
+    <label class="row"><span>Draft cost meter</span><input type="checkbox" checked /></label>
+    <label class="row"><span>Paste auditor</span><input type="checkbox" checked /></label></section>
+  <section><h2>Estimates</h2>
+    <label class="row"><span>Context budget <small>tokens</small></span><input type="number" value="200000" /></label>
+    <label class="row"><span>Characters per token</span><input type="number" value="3.7" /></label>
+    <label class="row"><span>Audit pastes over <small>tokens</small></span><input type="number" value="1000" /></label></section>
+  <section><h2>Health thresholds <small>% of context used</small></h2>
+    <div class="thresholds">
+      <label>Healthy &ge; <input type="number" value="40" /></label>
+      <label>Heavy &ge; <input type="number" value="70" /></label>
+      <label>Critical &ge; <input type="number" value="90" /></label></div></section>
+  <footer><button id="reset" type="button">Reset defaults</button><span id="status">Saved ✓</span></footer>
+  <div class="privacy">Estimates only &middot; 100% local &middot; nothing leaves your browser</div>
+</main></div></div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!-- @dsCard group="Composer" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ChatHP — Paste audit card</title>
+<style>
+.meter {
+  --bg: rgba(22, 24, 28, 0.92);
+  --fg: #e7e9ee;
+  --muted: #9aa1ad;
+  --border: rgba(255, 255, 255, 0.12);
+  --accent: #34d399;
+  --warn: #f59e0b;
+
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.meter[data-theme="light"] {
+  --bg: rgba(255, 255, 255, 0.96);
+  --fg: #1c1f24;
+  --muted: #5c6470;
+  --border: rgba(0, 0, 0, 0.12);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chip[hidden] { display: none; }
+
+.chip .glyph { color: var(--muted); }
+
+.chip.big { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+
+.audit {
+  width: 248px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audit[hidden] { display: none; }
+
+.audit-title {
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.audit-sub { color: var(--muted); }
+
+.abtn {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.abtn:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
+
+.abtn .save {
+  float: right;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.abtn.dismiss {
+  text-align: center;
+  color: var(--muted);
+}
+
+body { margin: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif; }
+.surface { flex: 1 1 260px; min-height: 100%; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
+.surface.dark { background: #262624; }
+.surface.light { background: #faf9f5; }
+.caption { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dark .caption { color: #9aa1ad; }
+.light .caption { color: #5c6470; }
+
+</style>
+</head>
+<body>
+<div class="surface dark"><div class="caption">inline paste · cleanups</div>
+<div class="meter" data-theme="dark">
+  <div class="audit">
+    <div class="audit-title">Large paste: ~1.4k tokens</div>
+    <div class="audit-sub">&asymp;0.7% of context &middot; optional local cleanups (whole draft):</div>
+    <button class="abtn">Trim trailing spaces<span class="save">&minus;~89 tok</span></button>
+    <button class="abtn">Collapse blank lines<span class="save">&minus;~16 tok</span></button>
+    <button class="abtn">Strip line numbers<span class="save">&minus;~179 tok</span></button>
+    <button class="abtn dismiss">Dismiss</button></div>
+</div>
+  <div class="caption">attached as file</div>
+<div class="meter" data-theme="dark">
+  <div class="audit">
+    <div class="audit-title">Large paste: ~1.4k tokens</div>
+    <div class="audit-sub">&asymp;0.7% of context. It was attached as a file, so it still costs this much when sent &mdash; text cleanups don't apply to attachments.</div>
+    <button class="abtn dismiss">Dismiss</button></div>
+</div></div>
+<div class="surface light"><div class="caption">light</div>
+<div class="meter" data-theme="light">
+  <div class="audit">
+    <div class="audit-title">Large paste: ~1.4k tokens</div>
+    <div class="audit-sub">&asymp;0.7% of context &middot; optional local cleanups (whole draft):</div>
+    <button class="abtn">Trim trailing spaces<span class="save">&minus;~89 tok</span></button>
+    <button class="abtn">Collapse blank lines<span class="save">&minus;~16 tok</span></button>
+    <button class="abtn">Strip line numbers<span class="save">&minus;~179 tok</span></button>
+    <button class="abtn dismiss">Dismiss</button></div>
+</div>
+<div class="meter" data-theme="light">
+  <div class="audit">
+    <div class="audit-title">Large paste: ~1.4k tokens</div>
+    <div class="audit-sub">&asymp;0.7% of context. It was attached as a file, so it still costs this much when sent &mdash; text cleanups don't apply to attachments.</div>
+    <button class="abtn dismiss">Dismiss</button></div>
+</div></div>
+</body>
+</html>

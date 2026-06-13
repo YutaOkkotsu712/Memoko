@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Packaged extension zips
+*.zip
+
+# Dev / scratch
+*.local
+.cache/
+coverage/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*~
+
+# Logs
+*.log
+npm-debug.log*
+.npm/
+
+# Env / secrets
+.env
+.env.*
+!.env.example

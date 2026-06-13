@@ -1,0 +1,133 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1c1f24;
+  --muted: #5c6470;
+  --border: rgba(0, 0, 0, 0.12);
+  --accent: #10b981;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c;
+    --fg: #e7e9ee;
+    --muted: #9aa1ad;
+    --border: rgba(255, 255, 255, 0.12);
+    --accent: #34d399;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  width: 300px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+main { padding: 12px 14px 10px; }
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+header img { border-radius: 5px; }
+
+h1 { font-size: 15px; margin: 0; }
+
+.ver { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+section { margin-top: 10px; }
+
+h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+h2 small, .row small { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.sitehealth {
+  font-size: 11px;
+  color: var(--muted);
+  margin: -3px 0 4px;
+}
+
+.sitehealth.ok { color: var(--accent); }
+.sitehealth.warn { color: #f59e0b; }
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+input[type="number"] {
+  width: 84px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: right;
+}
+
+.thresholds { display: flex; gap: 8px; }
+
+.thresholds label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.thresholds input[type="number"] { width: 100%; text-align: left; }
+
+footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#reset {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+#reset:hover { border-color: var(--muted); }
+
+#status { color: var(--accent); font-size: 12px; }
+
+.privacy {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}

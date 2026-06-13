@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Memoko settings</title>
+  <link rel="stylesheet" href="./popup.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <img src="/icons/icon32.png" alt="" width="20" height="20" />
+      <h1>Memoko</h1>
+      <span class="ver">v0.2</span>
+    </header>
+
+    <section>
+      <h2>Sites</h2>
+      <label class="row"><span>claude.ai</span><input type="checkbox" id="site-claude" /></label>
+      <div class="sitehealth" id="health-claude"></div>
+      <label class="row"><span>chatgpt.com</span><input type="checkbox" id="site-chatgpt" /></label>
+      <div class="sitehealth" id="health-chatgpt"></div>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+      <label class="row"><span>Handoff generator</span><input type="checkbox" id="feat-handoff" /></label>
+      <label class="row"><span>Draft cost meter</span><input type="checkbox" id="feat-meter" /></label>
+      <label class="row"><span>Paste auditor</span><input type="checkbox" id="feat-audit" /></label>
+      <label class="row"><span>Memoko speech bubbles</span><input type="checkbox" id="feat-bubbles" /></label>
+      <label class="row"><span>Toolbar badge <small>usage %</small></span><input type="checkbox" id="feat-badge" /></label>
+    </section>
+
+    <section>
+      <h2>Estimates</h2>
+      <label class="row"><span>claude.ai budget <small>tokens</small></span>
+        <input type="number" id="budget-claude" min="1000" step="1000" /></label>
+      <label class="row"><span>chatgpt.com budget <small>tokens</small></span>
+        <input type="number" id="budget-chatgpt" min="1000" step="1000" /></label>
+      <label class="row"><span>Characters per token</span>
+        <input type="number" id="cpt" min="1" max="10" step="0.1" /></label>
+      <label class="row"><span>Audit pastes over <small>tokens</small></span>
+        <input type="number" id="audit-min" min="50" step="50" /></label>
+    </section>
+
+    <section>
+      <h2>Health thresholds <small>% of context used</small></h2>
+      <div class="thresholds">
+        <label>Healthy ≥ <input type="number" id="t-healthy" min="1" max="100" /></label>
+        <label>Heavy ≥ <input type="number" id="t-heavy" min="1" max="100" /></label>
+        <label>Critical ≥ <input type="number" id="t-critical" min="1" max="100" /></label>
+      </div>
+    </section>
+
+    <footer>
+      <button id="reset" type="button">Reset defaults</button>
+      <span id="status" role="status"></span>
+    </footer>
+    <div class="privacy">Estimates only &middot; 100% local &middot; nothing leaves your browser</div>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

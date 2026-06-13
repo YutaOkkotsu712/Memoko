@@ -1,0 +1,89 @@
+<!-- @dsCard group="Foundations" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ChatHP — Color tokens</title>
+<style>
+
+body { margin: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif; }
+.surface { flex: 1 1 260px; min-height: 100%; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
+.surface.dark { background: #262624; }
+.surface.light { background: #faf9f5; }
+.caption { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dark .caption { color: #9aa1ad; }
+.light .caption { color: #5c6470; }
+.grid { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+.swatch { width:104px; text-align:center; font-size:11px; }
+.chip-color { height:44px; border-radius:10px; border:1px solid rgba(127,127,127,.35); }
+.sw-name { margin-top:5px; font-weight:600; } .sw-hex { opacity:.7; }
+</style>
+</head>
+<body>
+
+<div class="surface dark"><div class="caption">Health states (both themes)</div>
+  <div class="grid">
+    
+<div class="swatch"><div class="chip-color" style="background:#34d399"></div>
+  <div class="sw-name" style="color:#e7e9ee">--hp fresh</div>
+  <div class="sw-hex" style="color:#e7e9ee">#34d399</div></div>
+<div class="swatch"><div class="chip-color" style="background:#a3e635"></div>
+  <div class="sw-name" style="color:#e7e9ee">--hp healthy</div>
+  <div class="sw-hex" style="color:#e7e9ee">#a3e635</div></div>
+    
+<div class="swatch"><div class="chip-color" style="background:#f59e0b"></div>
+  <div class="sw-name" style="color:#e7e9ee">--hp heavy</div>
+  <div class="sw-hex" style="color:#e7e9ee">#f59e0b</div></div>
+<div class="swatch"><div class="chip-color" style="background:#ef4444"></div>
+  <div class="sw-name" style="color:#e7e9ee">--hp critical</div>
+  <div class="sw-hex" style="color:#e7e9ee">#ef4444</div></div>
+    
+<div class="swatch"><div class="chip-color" style="background:#f59e0b"></div>
+  <div class="sw-name" style="color:#e7e9ee">warn accents</div>
+  <div class="sw-hex" style="color:#e7e9ee">#f59e0b</div></div>
+  </div>
+  <div class="caption">Dark surface</div>
+  <div class="grid">
+    
+<div class="swatch"><div class="chip-color" style="background:rgba(22,24,28,.92)"></div>
+  <div class="sw-name" style="color:#e7e9ee">--bg</div>
+  <div class="sw-hex" style="color:#e7e9ee">rgba(22,24,28,.92)</div></div>
+<div class="swatch"><div class="chip-color" style="background:#e7e9ee"></div>
+  <div class="sw-name" style="color:#e7e9ee">--fg</div>
+  <div class="sw-hex" style="color:#e7e9ee">#e7e9ee</div></div>
+    
+<div class="swatch"><div class="chip-color" style="background:#9aa1ad"></div>
+  <div class="sw-name" style="color:#e7e9ee">--muted</div>
+  <div class="sw-hex" style="color:#e7e9ee">#9aa1ad</div></div>
+<div class="swatch"><div class="chip-color" style="background:rgba(255,255,255,.12)"></div>
+  <div class="sw-name" style="color:#e7e9ee">--border</div>
+  <div class="sw-hex" style="color:#e7e9ee">rgba(255,255,255,.12)</div></div>
+  </div>
+</div>
+<div class="surface light"><div class="caption">Light surface</div>
+  <div class="grid">
+    
+<div class="swatch"><div class="chip-color" style="background:rgba(255,255,255,.96)"></div>
+  <div class="sw-name" style="color:#1c1f24">--bg</div>
+  <div class="sw-hex" style="color:#1c1f24">rgba(255,255,255,.96)</div></div>
+<div class="swatch"><div class="chip-color" style="background:#1c1f24"></div>
+  <div class="sw-name" style="color:#1c1f24">--fg</div>
+  <div class="sw-hex" style="color:#1c1f24">#1c1f24</div></div>
+    
+<div class="swatch"><div class="chip-color" style="background:#5c6470"></div>
+  <div class="sw-name" style="color:#1c1f24">--muted</div>
+  <div class="sw-hex" style="color:#1c1f24">#5c6470</div></div>
+<div class="swatch"><div class="chip-color" style="background:rgba(0,0,0,.12)"></div>
+  <div class="sw-name" style="color:#1c1f24">--border</div>
+  <div class="sw-hex" style="color:#1c1f24">rgba(0,0,0,.12)</div></div>
+  </div>
+  <div class="caption">Type</div>
+  <div style="color:#1c1f24;font:12px/1.35 ui-sans-serif,system-ui,sans-serif">
+    UI text 12px &middot; chips 11px &middot; footers 10.5px<br/>
+    <b style="font-variant-numeric:tabular-nums">tabular numerals 0123456789</b>
+  </div>
+</div>
+</body>
+</html>

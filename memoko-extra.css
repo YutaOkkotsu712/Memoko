@@ -1,0 +1,519 @@
+/* Memoko — additions for idle behaviors, the Konami easter egg, and the
+   lifetime stats footer. Loaded into the shadow DOM AFTER pill.css, so it
+   shares the same --mk-* / --hp / --bg tokens. All motion is gated behind
+   prefers-reduced-motion at the bottom, mirroring pill.css. */
+
+/* ============================================================ IDLE POSES === */
+/* When idle, stop the horizontal patrol so Memoko settles at her home spot
+   (and the zzz / props stay aligned to her). data-state stays unchanged so
+   the HP tint is preserved. */
+.root.idle .trk,
+.root.idle .flip {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Gentle settle-in when she sits/opens the laptop. */
+.sp-sit .sp-sitbob,
+.sp-laptop .sp-sitbob {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-sit-breathe 3.6s ease-in-out infinite;
+}
+@keyframes mk-sit-breathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(0.5px) scaleY(0.985); }
+}
+
+/* Dangling feet — they swing lazily over the pill edge. */
+.sp-sit .sp-dangleA, .sp-sit .sp-dangleB,
+.sp-laptop .sp-dangleA, .sp-laptop .sp-dangleB,
+.sp-nap .sp-dangleA, .sp-nap .sp-dangleB {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+@keyframes mk-dangle-a { 0%,100% { transform: rotate(-9deg); } 50% { transform: rotate(8deg); } }
+@keyframes mk-dangle-b { 0%,100% { transform: rotate(8deg); } 50% { transform: rotate(-9deg); } }
+.sp-sit .sp-dangleA { animation: mk-dangle-a 2.3s ease-in-out infinite; }
+.sp-sit .sp-dangleB { animation: mk-dangle-b 2.3s ease-in-out infinite; animation-delay: -0.4s; }
+
+/* Idle head: she glances around while just sitting. */
+.sp-sit .sp-headG {
+  transform-box: fill-box;
+  transform-origin: 50% 88%;
+  animation: mk-idle-glance 6.5s ease-in-out infinite;
+}
+@keyframes mk-idle-glance {
+  0%, 22%, 100% { transform: rotate(0deg); }
+  34%, 46% { transform: rotate(6deg); }
+  60%, 74% { transform: rotate(-5deg); }
+}
+
+/* ---- laptop: typing + screen glow ---- */
+.sp-laptop .sp-dangleA { animation: mk-dangle-a 3.2s ease-in-out infinite; }
+.sp-laptop .sp-dangleB { animation: mk-dangle-b 3.2s ease-in-out infinite; animation-delay: -0.6s; }
+.sp-laptop .sp-type-l, .sp-laptop .sp-type-r {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+@keyframes mk-type { 0%,100% { transform: translateY(0); } 50% { transform: translateY(0.8px) rotate(2deg); } }
+.sp-laptop .sp-type-l { animation: mk-type 0.34s ease-in-out infinite; }
+.sp-laptop .sp-type-r { animation: mk-type 0.34s ease-in-out infinite; animation-delay: -0.17s; }
+.sp-laptop .sp-lap-scr {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mk-screen-flicker 2.6s steps(1, end) infinite;
+}
+@keyframes mk-screen-flicker {
+  0%, 100% { opacity: 1; }
+  40% { opacity: 0.74; }
+  55% { opacity: 0.92; }
+  70% { opacity: 0.62; }
+}
+.sp-laptop .sp-headG {
+  transform-box: fill-box;
+  transform-origin: 50% 88%;
+  animation: mk-laptop-nod 4.4s ease-in-out infinite;
+}
+@keyframes mk-laptop-nod {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2.5deg) translateY(0.3px); }
+}
+
+/* ---- nap: slow deep breathing + lolling head ---- */
+.sp-nap .sp-napbob {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-nap-breathe 4.8s ease-in-out infinite;
+}
+@keyframes mk-nap-breathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(0.6px) scaleY(0.97); }
+}
+.sp-nap .sp-headG {
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: mk-nap-loll 4.8s ease-in-out infinite;
+}
+@keyframes mk-nap-loll {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(3deg); }
+}
+.sp-nap .sp-dangleA, .sp-nap .sp-dangleB { transform: rotate(0deg); }
+
+/* ---- zzz floating up while napping (lives in .pillspot) ---- */
+.zzz {
+  position: absolute;
+  left: 26px;
+  bottom: calc(100% + 4px);
+  pointer-events: none;
+  z-index: 3;
+}
+.zzz i {
+  position: absolute;
+  font-family: var(--mono);
+  font-weight: 800;
+  color: color-mix(in srgb, var(--mk-wisp) 70%, var(--fg));
+  opacity: 0;
+}
+.zzz i:nth-child(1) { font-size: 9px; left: 0; }
+.zzz i:nth-child(2) { font-size: 11px; left: 5px; }
+.zzz i:nth-child(3) { font-size: 13px; left: 11px; }
+.root.idle-nap .zzz i { animation: mk-zzz 3.4s ease-out infinite; }
+.root.idle-nap .zzz i:nth-child(1) { animation-delay: 0s; }
+.root.idle-nap .zzz i:nth-child(2) { animation-delay: 0.5s; }
+.root.idle-nap .zzz i:nth-child(3) { animation-delay: 1s; }
+@keyframes mk-zzz {
+  0% { opacity: 0; transform: translate(0, 6px) rotate(-8deg) scale(0.7); }
+  25% { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(-10px, -20px) rotate(10deg) scale(1.1); }
+}
+
+/* Fade the pill chrome down a touch while she's idle — she's the focus. */
+.root.idle .pill { transition: opacity 0.6s ease; }
+
+/* Entering an idle pose: a soft drop-in so she doesn't just snap. */
+.root.idle-enter .pop {
+  animation: mk-idle-settle 0.6s cubic-bezier(0.22, 0.7, 0.25, 1) both;
+}
+@keyframes mk-idle-settle {
+  0% { transform: translateY(-6px); }
+  60% { transform: translateY(1.5px); }
+  100% { transform: translateY(0); }
+}
+
+/* The speech bubble physically rides inside .trk, so the same (composited)
+   patrol transform that moves her carries the bubble too. .trk is made a
+   positioning context so the bubble anchors to her body in every state. */
+.trk { position: relative; }
+.speech {
+  right: 0;
+  left: auto;
+  bottom: calc(100% + 4px);
+}
+.speech::after { left: auto; right: 8px; }
+
+/* ============================================= PATROL DURATION FIX === */
+/* In the original CSS the patrol uses `animation: memoko-trk var(--trk-dur) …`
+   — the var inside the shorthand computes the duration to 0s in some engines,
+   so she never actually paces. Re-declare as longhands so --trk-dur resolves. */
+.root[data-state="fresh"] .trk,
+.root[data-state="healthy"] .trk,
+.root[data-state="heavy"] .trk {
+  animation-name: memoko-trk;
+  animation-duration: var(--trk-dur);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.root[data-state="fresh"] .flip,
+.root[data-state="healthy"] .flip,
+.root[data-state="heavy"] .flip {
+  animation-name: memoko-flip;
+  animation-duration: var(--trk-dur);
+  animation-timing-function: step-end;
+  animation-iteration-count: infinite;
+}
+/* Keep the entrance hold and the idle/attentive pauses working. */
+.root.intro .trk,
+.root.intro .flip { animation-delay: 1.25s; }
+
+/* ================================================== POSE-SWAP CUSHION === */
+/* Every pose change is wrapped in .mk-swap so the SVG swap reads as a soft
+   settle rather than a hard cut. No other animation touches this layer. */
+.mk-swap {
+  display: block;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-swap-in 0.19s cubic-bezier(0.30, 0.80, 0.35, 1) both;
+}
+@keyframes mk-swap-in {
+  0%   { opacity: 0.4; transform: translateY(1px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Props are pulled out: laptop + notepad pop into her hands with anticipation. */
+.sp-lap, .sp-pad {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-prop-in 0.44s cubic-bezier(0.30, 0.85, 0.30, 1) both;
+}
+@keyframes mk-prop-in {
+  0%   { opacity: 0; transform: translateY(5px) scale(0.35); }
+  55%  { opacity: 1; transform: translateY(0) scale(1.08); }
+  78%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* ===================================================== CURSOR ATTENTION === */
+/* When the cursor comes near, she stops pacing and turns to face forward; the
+   host drives .mk-track (head) and .mk-eyes (pupils) toward the pointer. */
+.root.attentive .trk { animation-play-state: paused; }
+.root.attentive .flip { animation: none !important; transform: scaleX(1) !important; }
+
+.mk-track {
+  transform-box: fill-box;
+  transform-origin: 50% 84%;
+  transition: transform 0.13s ease-out;
+}
+.mk-eyes {
+  transform-box: fill-box;
+  transition: transform 0.13s ease-out;
+}
+
+/* ========================================================= PET / HEARTS === */
+/* Clicking the sprite pets her: a quick happy wiggle + floating hearts. */
+.sprite { pointer-events: auto; cursor: pointer; }
+
+.root.petted .pop {
+  animation: mk-petted 0.7s cubic-bezier(0.30, 0.70, 0.30, 1) both;
+}
+@keyframes mk-petted {
+  0%   { transform: translateY(0) scale(1, 1); }
+  22%  { transform: translateY(1px) scale(1.12, 0.86); }
+  48%  { transform: translateY(-7px) scale(0.93, 1.12); }
+  72%  { transform: translateY(0) scale(1.04, 0.97); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+.heart {
+  position: absolute;
+  bottom: calc(100% - 2px);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--mk-hair);
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  animation: mk-heart 1.15s ease-out both;
+}
+@keyframes mk-heart {
+  0%   { opacity: 0; transform: translateY(4px) scale(0.4) rotate(0deg); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-26px) scale(1) rotate(var(--r, 8deg)); }
+}
+
+/* ============================================================ WAVE HELLO === */
+.sp-wave .sp-bob { animation: mk-wave-hop 0.62s ease-in-out infinite; }
+@keyframes mk-wave-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.sp-wave .sp-armB {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: mk-wave-arm 0.42s ease-in-out infinite;
+}
+@keyframes mk-wave-arm {
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(14deg); }
+}
+.sp-wave .sp-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: memoko-spark 1.4s ease-in-out infinite;
+}
+
+/* ======================================================== YAWN + STRETCH === */
+.sp-yawn .sp-yawnbob {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-yawn-rise 1.7s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+@keyframes mk-yawn-rise {
+  0%   { transform: translateY(2px) scaleY(0.96); }
+  45%  { transform: translateY(-1.5px) scaleY(1.04); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+.sp-yawn .sp-stretchA, .sp-yawn .sp-stretchB {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-stretch 1.7s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+@keyframes mk-stretch {
+  0%   { transform: scaleY(0.7); }
+  45%  { transform: scaleY(1.06); }
+  100% { transform: scaleY(1); }
+}
+.sp-yawn .sp-dangleA, .sp-yawn .sp-dangleB { transform: rotate(0deg); }
+
+/* ============================================================== DOODLING === */
+.sp-doodle .sp-doodlebob {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-sit-breathe 3.4s ease-in-out infinite;
+}
+.sp-doodle .sp-scribble {
+  transform-box: fill-box;
+  transform-origin: 50% 6%;
+  animation: mk-scribble 0.5s ease-in-out infinite;
+}
+@keyframes mk-scribble {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  35% { transform: translateX(-0.8px) rotate(-3deg); }
+  70% { transform: translateX(0.9px) rotate(3deg); }
+}
+.sp-doodle .sp-dangleA, .sp-doodle .sp-dangleB { transform: rotate(0deg); }
+.sp-doodle .sp-headG {
+  transform-box: fill-box;
+  transform-origin: 50% 88%;
+  animation: mk-doodle-scan 2.8s ease-in-out infinite;
+}
+@keyframes mk-doodle-scan {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2.5deg) translateX(0.5px); }
+}
+
+/* ===================== idle micro-variety: kick + peek (reuse sit art) === */
+.root.idle-kick .sp-dangleA { animation: mk-dangle-a 0.78s ease-in-out infinite !important; }
+.root.idle-kick .sp-dangleB { animation: mk-dangle-b 0.78s ease-in-out infinite !important; animation-delay: -0.2s !important; }
+.root.idle-kick .sp-sit .sp-headG { animation: mk-kick-bop 0.78s ease-in-out infinite !important; }
+@keyframes mk-kick-bop {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.root.idle-peek .sp-sit .sp-headG { animation: mk-peek 3.4s ease-in-out infinite !important; }
+@keyframes mk-peek {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  26%, 38% { transform: rotate(-13deg) translateX(-0.8px); }
+  60%, 74% { transform: rotate(10deg) translateX(0.6px); }
+}
+
+/* ====================================================== KONAMI EASTER EGG === */
+/* Triggered by ↑↑↓↓←→←→ B A. A 1-UP pops, confetti rains, Memoko dances. */
+
+.root.konami .pop {
+  animation: mk-konami-dance 1.6s cubic-bezier(0.30, 0.60, 0.30, 1) both;
+}
+@keyframes mk-konami-dance {
+  0%   { transform: translateY(0) rotate(0deg); }
+  14%  { transform: translateY(-10px) rotate(-12deg); }
+  30%  { transform: translateY(0) rotate(0deg); }
+  46%  { transform: translateY(-8px) rotate(12deg); }
+  62%  { transform: translateY(0) rotate(0deg); }
+  80%  { transform: translateY(-12px) rotate(360deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+
+/* Rainbow pulse on the pill border + glow during the party. */
+.root.konami .pill {
+  animation: mk-konami-rainbow 1.6s linear both;
+}
+@keyframes mk-konami-rainbow {
+  0%   { border-color: #ff5d8f; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 18px rgba(255,93,143,.6); }
+  25%  { border-color: #ffd166; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 18px rgba(255,209,102,.6); }
+  50%  { border-color: #34d399; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 18px rgba(52,211,153,.6); }
+  75%  { border-color: #5db3e8; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 18px rgba(95,179,232,.6); }
+  100% { border-color: #b794f6; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 18px rgba(183,148,246,.6); }
+}
+
+/* 1-UP text — blocky retro green, floats up like a classic extra life. */
+.oneup {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  color: #5bf08a;
+  text-shadow:
+    -1.5px 0 #0c2a16, 1.5px 0 #0c2a16, 0 -1.5px #0c2a16, 0 1.5px #0c2a16,
+    -1.5px -1.5px #0c2a16, 1.5px 1.5px #0c2a16, -1.5px 1.5px #0c2a16, 1.5px -1.5px #0c2a16;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 6;
+  animation: mk-oneup 1.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes mk-oneup {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.6); }
+  18%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.12); }
+  32%  { transform: translateX(-50%) translateY(-2px) scale(1); }
+  78%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-40px) scale(1); }
+}
+
+/* Confetti rain — generated by the host into .kfetti. */
+.kfetti {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 2px);
+  height: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.kfetti i {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 9px;
+  border-radius: 1px;
+  opacity: 0;
+  animation: mk-kfetti 1.5s cubic-bezier(0.25, 0.55, 0.35, 1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-kfetti {
+  0%   { opacity: 0; transform: translateY(-6px) rotate(0deg) scaleY(0.4); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(var(--fall, 64px)) rotate(var(--spin, 420deg)) scaleY(1); }
+}
+
+/* ========================================================= STATS FOOTER === */
+/* Lifetime tracker in the panel footer: chats watched, handoffs, tokens saved,
+   plus the headline line. Matches the RPG panel rows (dotted leaders, mono). */
+
+.stats {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+
+.stats-cap {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+
+.srow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.srow > span { color: var(--muted); }
+.srow .dots {
+  flex: 1;
+  border-bottom: 1px dotted color-mix(in srgb, var(--fg) 35%, transparent);
+  transform: translateY(-3px);
+}
+.srow b {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* a number that just ticked up gets a brief highlight */
+.srow b.bump {
+  animation: mk-stat-bump 0.8s ease-out both;
+}
+@keyframes mk-stat-bump {
+  0% { color: var(--hp); transform: scale(1.25); }
+  100% { color: inherit; transform: scale(1); }
+}
+
+.stats-hero {
+  margin-top: 9px;
+  padding: 8px 9px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--mk-hair) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mk-hair) 40%, transparent);
+  color: var(--fg);
+  font-size: 11px;
+  line-height: 1.4;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.stats-hero .heart {
+  color: var(--mk-hair);
+  font-size: 11px;
+  transform: translateY(0.5px);
+}
+.stats-hero b {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--mk-hair) 60%, var(--fg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-sit .sp-sitbob, .sp-laptop .sp-sitbob,
+  .sp-sit .sp-dangleA, .sp-sit .sp-dangleB,
+  .sp-laptop .sp-dangleA, .sp-laptop .sp-dangleB,
+  .sp-sit .sp-headG, .sp-laptop .sp-headG,
+  .sp-laptop .sp-type-l, .sp-laptop .sp-type-r, .sp-laptop .sp-lap-scr,
+  .sp-nap .sp-napbob, .sp-nap .sp-headG,
+  .root.idle-nap .zzz i,
+  .root.idle-enter .pop,
+  .root.konami .pop, .root.konami .pill,
+  .oneup, .kfetti i,
+  .sp-wave .sp-bob, .sp-wave .sp-armB, .sp-wave .sp-spark,
+  .sp-yawn .sp-yawnbob, .sp-yawn .sp-stretchA, .sp-yawn .sp-stretchB,
+  .sp-doodle .sp-doodlebob, .sp-doodle .sp-scribble, .sp-doodle .sp-headG,
+  .root.idle-kick .sp-dangleA, .root.idle-kick .sp-dangleB, .root.idle-kick .sp-sit .sp-headG,
+  .root.idle-peek .sp-sit .sp-headG,
+  .root.petted .pop, .heart,
+  .mk-swap, .sp-lap, .sp-pad,
+  .srow b.bump {
+    animation: none !important;
+  }
+  /* Tracking transitions stay off; the static turn still reads. */
+  .mk-track, .mk-eyes { transition: none !important; }
+  /* Keep the zzz visible (static) so the nap still reads under reduced motion. */
+  .root.idle-nap .zzz i { opacity: 0.9; }
+}

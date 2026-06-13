@@ -1,0 +1,313 @@
+<!-- @dsCard group="Health Pill" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ChatHP — Pill states</title>
+<style>
+.root {
+  --bg: rgba(22, 24, 28, 0.92);
+  --fg: #e7e9ee;
+  --muted: #9aa1ad;
+  --border: rgba(255, 255, 255, 0.12);
+  --track: rgba(255, 255, 255, 0.12);
+  --hp: #34d399;
+
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.root[data-theme="light"] {
+  --bg: rgba(255, 255, 255, 0.96);
+  --fg: #1c1f24;
+  --muted: #5c6470;
+  --border: rgba(0, 0, 0, 0.12);
+  --track: rgba(0, 0, 0, 0.1);
+}
+
+.root[data-state="fresh"]    { --hp: #34d399; }
+.root[data-state="healthy"]  { --hp: #a3e635; }
+.root[data-state="heavy"]    { --hp: #f59e0b; }
+.root[data-state="critical"] { --hp: #ef4444; }
+
+/* ---- collapsed pill ---- */
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  color: var(--fg);
+  font: inherit;
+  cursor: grab;
+  touch-action: none;
+}
+
+.pill:active { cursor: grabbing; }
+
+.hp-ico {
+  color: var(--hp);
+  font-size: 11px;
+  transition: color 0.35s ease;
+}
+
+.hpbar {
+  position: relative;
+  width: 54px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--track);
+  overflow: hidden;
+  flex: none;
+}
+
+.hpbar .fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  border-radius: 4px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--hp) 80%, white),
+    var(--hp)
+  );
+  transition: width 0.35s ease;
+}
+
+.root.streaming .hpbar .fill {
+  animation: chathp-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes chathp-pulse {
+  50% { opacity: 0.55; }
+}
+
+.pct {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ---- onboarding hint ---- */
+
+.hint {
+  width: 224px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--hp) 40%, var(--border));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hint[hidden] { display: none; }
+
+.hint-text { color: var(--fg); }
+
+/* ---- expanded panel ---- */
+
+.panel {
+  width: 232px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.panel[hidden] { display: none; }
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge {
+  color: var(--hp);
+  border: 1px solid color-mix(in srgb, var(--hp) 45%, transparent);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.hpbar.large {
+  width: 100%;
+  height: 9px;
+  margin-bottom: 10px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.row[hidden] { display: none; }
+
+.row span { color: var(--muted); }
+
+.row b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.row b.warn { color: #f59e0b; }
+
+.handoff-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hbtn {
+  padding: 6px 8px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hbtn:hover {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.hbtn.primary {
+  border-color: color-mix(in srgb, var(--hp) 55%, transparent);
+  color: var(--hp);
+  font-weight: 600;
+}
+
+.hbtn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hrow {
+  display: flex;
+  gap: 6px;
+}
+
+.hrow .hbtn { flex: 1; }
+.hrow .hbtn.hx { flex: none; width: 30px; padding: 6px 0; }
+
+.hnote { color: var(--muted); }
+
+.hwait { animation: chathp-pulse 1.4s ease-in-out infinite; }
+
+.hratio {
+  font-weight: 600;
+  color: var(--hp);
+  font-variant-numeric: tabular-nums;
+}
+
+.hpreview {
+  max-height: 110px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.foot {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hpbar .fill { transition: none; }
+  .root.streaming .hpbar .fill,
+  .hwait { animation: none; }
+}
+
+body { margin: 0; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif; }
+.surface { flex: 1 1 260px; min-height: 100%; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 18px; box-sizing: border-box; }
+.surface.dark { background: #262624; }
+.surface.light { background: #faf9f5; }
+.caption { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dark .caption { color: #9aa1ad; }
+.light .caption { color: #5c6470; }
+
+</style>
+</head>
+<body>
+<div class="surface dark"><div class="caption">dark · fresh / healthy / heavy / critical / streaming</div>
+<div class="root" data-state="fresh" data-theme="dark">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:88%"></span></span><span class="pct">12%</span></button>
+</div>
+<div class="root" data-state="healthy" data-theme="dark">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:45%"></span></span><span class="pct">55%</span></button>
+</div>
+<div class="root" data-state="heavy" data-theme="dark">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:22%"></span></span><span class="pct">78%</span></button>
+</div>
+<div class="root" data-state="critical" data-theme="dark">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:6%"></span></span><span class="pct">94%</span></button>
+</div>
+<div class="root streaming" data-state="healthy" data-theme="dark">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:43%"></span></span><span class="pct">57%</span></button>
+</div></div>
+<div class="surface light"><div class="caption">light · fresh / healthy / heavy / critical / streaming</div>
+<div class="root" data-state="fresh" data-theme="light">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:88%"></span></span><span class="pct">12%</span></button>
+</div>
+<div class="root" data-state="healthy" data-theme="light">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:45%"></span></span><span class="pct">55%</span></button>
+</div>
+<div class="root" data-state="heavy" data-theme="light">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:22%"></span></span><span class="pct">78%</span></button>
+</div>
+<div class="root" data-state="critical" data-theme="light">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:6%"></span></span><span class="pct">94%</span></button>
+</div>
+<div class="root streaming" data-state="healthy" data-theme="light">
+  <button class="pill"><span class="hp-ico">&#10084;</span><span class="hpbar"><span class="fill" style="width:43%"></span></span><span class="pct">57%</span></button>
+</div></div>
+</body>
+</html>
