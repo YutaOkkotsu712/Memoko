@@ -248,6 +248,87 @@ export async function loadAdapterHealth(
 }
 
 /**
+ * Session-only estimate floor: chat sites may remount only part of a long
+ * transcript after reload, so a DOM-only count can suddenly undercount. Store
+ * numeric high-water marks per conversation, never message text.
+ */
+export interface ConversationEstimate {
+  siteId: string;
+  conversationId: string;
+  tokens: number;
+  charsPerToken: number;
+  messageCount: number;
+  charCount: number;
+  dupTokens: number;
+  dupBlocks: number;
+  at: number;
+}
+
+const ESTIMATE_PREFIX = 'estimate:';
+const ESTIMATE_TTL_MS = 24 * 60 * 60_000;
+
+const estimateKey = (siteId: string, conversationId: string): string =>
+  `${ESTIMATE_PREFIX}${siteId}:${conversationId}`;
+
+function validConversationEstimate(
+  value: Partial<ConversationEstimate> | undefined,
+  siteId: string,
+  conversationId: string
+): ConversationEstimate | null {
+  if (!value || value.siteId !== siteId || value.conversationId !== conversationId) return null;
+  if (
+    typeof value.tokens !== 'number' ||
+    typeof value.charsPerToken !== 'number' ||
+    typeof value.messageCount !== 'number' ||
+    typeof value.charCount !== 'number' ||
+    typeof value.dupTokens !== 'number' ||
+    typeof value.dupBlocks !== 'number' ||
+    typeof value.at !== 'number'
+  ) {
+    return null;
+  }
+  if (Date.now() - value.at > ESTIMATE_TTL_MS) return null;
+  return {
+    siteId,
+    conversationId,
+    tokens: Math.max(0, Math.round(value.tokens)),
+    charsPerToken: value.charsPerToken,
+    messageCount: Math.max(0, Math.round(value.messageCount)),
+    charCount: Math.max(0, Math.round(value.charCount)),
+    dupTokens: Math.max(0, Math.round(value.dupTokens)),
+    dupBlocks: Math.max(0, Math.round(value.dupBlocks)),
+    at: value.at,
+  };
+}
+
+export async function loadConversationEstimate(
+  siteId: string,
+  conversationId: string
+): Promise<ConversationEstimate | null> {
+  try {
+    const key = estimateKey(siteId, conversationId);
+    const got = await chrome.storage.session.get(key);
+    return validConversationEstimate(
+      got?.[key] as Partial<ConversationEstimate> | undefined,
+      siteId,
+      conversationId
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function saveConversationEstimate(estimate: ConversationEstimate): void {
+  try {
+    void chrome.storage.session.set({
+      [estimateKey(estimate.siteId, estimate.conversationId)]: estimate,
+    });
+  } catch {
+    // session storage unavailable — estimates remain DOM-only
+  }
+}
+
+/**
  * Handoff stash: carries a generated handoff summary from "New chat"
  * into the fresh conversation's input. This is the ONE place
  * conversation-derived content touches extension storage, so it is as

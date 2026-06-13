@@ -4,17 +4,20 @@ import { debounce } from '../core/debounce';
 import {
   budgetFor,
   loadCoachMark,
+  loadConversationEstimate,
   loadOnboarded,
   loadPillState,
   loadSettings,
   onSettingsChanged,
   reportAdapterHealth,
+  saveConversationEstimate,
   saveCoachMark,
   saveOnboarded,
   savePillState,
   stashHandoff,
   takeHandoffStash,
   type AdapterStatus,
+  type ConversationEstimate,
   type Settings,
 } from '../core/settings';
 import { effectiveLoadPct, healthState, type HealthState } from '../core/health';
@@ -97,6 +100,49 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   // MutationObserver doubles as our navigation hook.
   const firstSeen = new Map<string, number>();
   let visible = false;
+
+  // Session-only high-water estimate for the current conversation. This
+  // protects against host apps remounting only a visible slice after reload.
+  let estimateConvo: string | null = null;
+  let estimateCache: ConversationEstimate | null = null;
+  let estimateLoadSeq = 0;
+  let estimateLoading = false;
+
+  const ensureEstimateCache = (convoId: string): boolean => {
+    if (estimateConvo === convoId) return !estimateLoading;
+    estimateConvo = convoId;
+    estimateCache = null;
+    estimateLoading = true;
+    const seq = ++estimateLoadSeq;
+    void loadConversationEstimate(adapter.id, convoId)
+      .then((estimate) => {
+        if (seq !== estimateLoadSeq || estimateConvo !== convoId) return;
+        estimateCache = estimate;
+        estimateLoading = false;
+        scheduleRecompute();
+      })
+      .catch(() => {
+        if (seq !== estimateLoadSeq || estimateConvo !== convoId) return;
+        estimateLoading = false;
+        scheduleRecompute();
+      });
+    return false;
+  };
+
+  const rememberEstimate = (next: ConversationEstimate): void => {
+    const prev = estimateCache;
+    const improved =
+      !prev ||
+      prev.charsPerToken !== next.charsPerToken ||
+      next.tokens > prev.tokens ||
+      next.messageCount > prev.messageCount ||
+      next.charCount > prev.charCount ||
+      next.dupTokens > prev.dupTokens ||
+      next.dupBlocks > prev.dupBlocks;
+    if (!improved) return;
+    estimateCache = next;
+    saveConversationEstimate(next);
+  };
 
   // Waste analysis is a full-transcript pass, so it's gated (only when
   // nothing is streaming and the transcript changed) AND deferred to
@@ -300,6 +346,8 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
 
       const convoId = adapter.conversationId(location);
       if (!convoId) return hide();
+      const estimateReady = ensureEstimateCache(convoId);
+      if (!estimateReady && !visible) return;
 
       const fresh = wantFresh;
       wantFresh = false;
@@ -312,24 +360,31 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       lastMessages = transcript.messages;
 
       if (!firstSeen.has(convoId)) firstSeen.set(convoId, Date.now());
+      const now = Date.now();
 
       const budget = budgetFor(settings, adapter.id);
-      const tokens = transcriptTokens(transcript.messages, settings.charsPerToken);
+      const observedTokens = transcriptTokens(transcript.messages, settings.charsPerToken);
+      const matchingEstimate =
+        estimateCache && estimateCache.charsPerToken === settings.charsPerToken
+          ? estimateCache
+          : null;
+      const tokens = Math.max(observedTokens, matchingEstimate?.tokens ?? 0);
       const usagePct = budget > 0 ? (tokens / budget) * 100 : 0;
 
-      if (!transcript.anyStreaming && transcript.charCount !== wasteAnalyzedAt) {
-        scheduleWasteAnalysis(transcript.messages, transcript.charCount);
-      }
-
       // Burn rate: sample settled token counts for this conversation.
-      const now = Date.now();
       if (burnConvo !== convoId) {
         burnConvo = convoId;
         burnSamples = [];
         heavyCycle = 0;
         dupCycle = 0;
+        waste = EMPTY_WASTE;
+        wasteAnalyzedAt = -1;
+        wastePending = false;
       }
-      if (!transcript.anyStreaming) {
+      if (!transcript.anyStreaming && transcript.charCount !== wasteAnalyzedAt) {
+        scheduleWasteAnalysis(transcript.messages, transcript.charCount);
+      }
+      if (!transcript.anyStreaming && observedTokens === tokens) {
         const lastSample = burnSamples[burnSamples.length - 1];
         if (!lastSample || lastSample.tokens !== tokens) {
           burnSamples.push({ at: now, tokens });
@@ -356,13 +411,28 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
 
       // Convert duplicate chars at the transcript's MEASURED density, so
       // dup numbers stay consistent with the headline estimate.
-      const blendedCpt = tokens > 0 ? transcript.charCount / tokens : settings.charsPerToken;
-      const dupTokens = Math.round(waste.avoidableChars / Math.max(0.5, blendedCpt));
+      const observedBlendedCpt =
+        observedTokens > 0 ? transcript.charCount / observedTokens : settings.charsPerToken;
+      const observedDupTokens = Math.round(waste.avoidableChars / Math.max(0.5, observedBlendedCpt));
+      const dupTokens = Math.max(observedDupTokens, matchingEstimate?.dupTokens ?? 0);
+      const dupBlocks = Math.max(waste.blocks, matchingEstimate?.dupBlocks ?? 0);
+      const messageCount = Math.max(transcript.messages.length, matchingEstimate?.messageCount ?? 0);
       const adjustedPct = effectiveLoadPct({
         usagePct,
-        messageCount: transcript.messages.length,
+        messageCount,
         dupTokens,
         budget,
+      });
+      rememberEstimate({
+        siteId: adapter.id,
+        conversationId: convoId,
+        tokens,
+        charsPerToken: settings.charsPerToken,
+        messageCount,
+        charCount: Math.max(transcript.charCount, matchingEstimate?.charCount ?? 0),
+        dupTokens,
+        dupBlocks,
+        at: now,
       });
 
       const stats: PillStats = {
@@ -371,15 +441,15 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
         state: healthState(adjustedPct, settings.thresholds),
         tokens,
         budget,
-        messageCount: transcript.messages.length,
+        messageCount,
         ageMs: Date.now() - (firstSeen.get(convoId) ?? Date.now()),
         streaming: transcript.anyStreaming,
         dupTokens,
-        dupBlocks: waste.blocks,
+        dupBlocks,
         bubble: computeBubble(healthState(adjustedPct, settings.thresholds)),
         burnTokensPerMin: perMin,
         minutesToCritical,
-        userSharePct: tokens > 0 ? (userTokens / tokens) * 100 : null,
+        userSharePct: tokens > 0 && observedTokens === tokens ? (userTokens / tokens) * 100 : null,
         heaviest,
       };
 

@@ -14,10 +14,13 @@ and a one-click handoff to a fresh chat.
 
 - **100% local.** No backend, no API keys, no accounts, no analytics.
 - **Nothing leaves your browser.** Conversation content is read from the
-  page DOM, used for an in-memory token estimate, and discarded. It is
-  never stored and never transmitted.
-- **The only thing persisted** is your settings and the pill's position,
-  in `chrome.storage.local` on your machine.
+  page DOM, used for token estimates, and discarded. Message text is never
+  stored and never transmitted.
+- **Persisted on disk**: your settings and the pill's position, in
+  `chrome.storage.local` on your machine.
+- **Session-only estimate memory**: Memoko keeps numeric high-water counts
+  per conversation (tokens, messages, duplicates; no text) in
+  `chrome.storage.session` so reloads cannot make a long chat look cheap.
 - **Read-only.** Memoko never sends messages or automates actions on
   your behalf. The handoff feature *pre-fills* the chat input — you
   always click send.

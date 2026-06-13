@@ -680,15 +680,48 @@ export function createPill(opts: PillOptions): PillUI {
   };
 
   // =====================================================================
-  // PET — click the sprite for hearts + a happy wiggle
+  // PET — click the sprite for a state-aware response
   // =====================================================================
   let petTimer = 0;
-  const PET_LINES = ['ehehe~', '♪ ♫', 'hehe, hi!', '*happy wiggle*', 'yay! 💕', 'boop!'];
 
-  const spawnHearts = () => {
-    if (reducedMotion()) return;
-    const n = 3 + Math.floor(Math.random() * 2);
-    for (let i = 0; i < n; i++) {
+  type PetClass = 'pet-bright' | 'pet-soft' | 'pet-tired' | 'pet-critical';
+
+  const PET_CLASSES: PetClass[] = ['pet-bright', 'pet-soft', 'pet-tired', 'pet-critical'];
+  const PET_REACTIONS: Record<HealthState, {
+    className: PetClass;
+    hearts: number;
+    durationMs: number;
+    lines: string[];
+  }> = {
+    fresh: {
+      className: 'pet-bright',
+      hearts: 4,
+      durationMs: 720,
+      lines: ['Ehehe~', 'Boop!', 'Ready to run.', 'Tiny boost received.'],
+    },
+    healthy: {
+      className: 'pet-soft',
+      hearts: 3,
+      durationMs: 680,
+      lines: ['Still doing okay.', 'Thanks, I am steady.', 'We have room.', 'Little morale bump.'],
+    },
+    heavy: {
+      className: 'pet-tired',
+      hearts: 1,
+      durationMs: 760,
+      lines: ['Thanks... I needed that.', 'Getting heavy now.', 'Maybe handoff soon?', 'I can keep going, slowly.'],
+    },
+    critical: {
+      className: 'pet-critical',
+      hearts: 0,
+      durationMs: 900,
+      lines: ['I am spent. Please hand this off.', 'Too full... fresh chat?', 'I cannot carry much more.', 'Handoff would help me breathe.'],
+    },
+  };
+
+  const spawnHearts = (count: number) => {
+    if (count <= 0 || reducedMotion()) return;
+    for (let i = 0; i < count; i++) {
       const h = document.createElement('span');
       h.className = 'heart';
       h.textContent = '♥';
@@ -701,21 +734,27 @@ export function createPill(opts: PillOptions): PillUI {
     }
   };
 
+  const clearPetClasses = () => {
+    root.classList.remove('petted', ...PET_CLASSES);
+  };
+
   const pet = () => {
+    const reaction = PET_REACTIONS[lastState];
     if (idleStage) { clearIdleTimers(); idleStage = null; }
     petting = true;
     setAttentive(false);
     syncPose();
-    root.classList.remove('petted');
+    clearPetClasses();
     void root.offsetWidth;
-    root.classList.add('petted');
-    spawnHearts();
-    showBubble(pick(PET_LINES));
+    root.classList.add('petted', reaction.className);
+    spawnHearts(reaction.hearts);
+    showBubble(pick(reaction.lines));
     window.clearTimeout(petTimer);
     petTimer = window.setTimeout(() => {
       petting = false;
+      clearPetClasses();
       scheduleIdle();
-    }, 720);
+    }, reaction.durationMs);
   };
 
   sprite.style.pointerEvents = 'auto';
@@ -1074,6 +1113,7 @@ export function createPill(opts: PillOptions): PillUI {
       waving = false;
       startling = false;
       petting = false;
+      clearPetClasses();
       setAttentive(false);
       syncPose();
     },
