@@ -33,6 +33,7 @@ function populate(s: Settings): void {
   $('feat-audit').checked = s.features.pasteAudit;
   $('feat-bubbles').checked = s.features.bubbles;
   $('feat-badge').checked = s.features.badge;
+  $('feat-autobudget').checked = s.features.autoBudget;
   $('budget-claude').value = String(budgetFor(s, 'claude'));
   $('budget-chatgpt').value = String(budgetFor(s, 'chatgpt'));
   $('cpt').value = String(s.charsPerToken);
@@ -77,6 +78,7 @@ function collect(): Settings {
       pasteAudit: $('feat-audit').checked,
       bubbles: $('feat-bubbles').checked,
       badge: $('feat-badge').checked,
+      autoBudget: $('feat-autobudget').checked,
     },
   };
 }
@@ -97,7 +99,11 @@ function describeHealth(id: string, health: AdapterHealth | null): void {
   const mins = Math.round((Date.now() - health.at) / 60_000);
   const ago = mins < 1 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
   if (health.status === 'ok') {
-    el.textContent = `✓ working · ${ago}`;
+    const model =
+      health.model && health.budget
+        ? ` · ${health.model} (${Math.round(health.budget / 1000)}k)`
+        : '';
+    el.textContent = `✓ working${model} · ${ago}`;
     el.className = 'sitehealth ok';
   } else {
     el.textContent = `⚠ loaded but found no conversation — selectors may be stale · ${ago}`;

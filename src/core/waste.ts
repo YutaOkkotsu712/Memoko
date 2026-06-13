@@ -46,45 +46,82 @@ export const EMPTY_WASTE: WasteReport = { avoidableChars: 0, blocks: 0, refs: []
 
 const MAX_REFS = 12;
 
+/**
+ * The expensive per-message work (normalize lines, join+hash every
+ * window) cached by message text. Phase-independent: the global dup pass
+ * replays the seen-set logic over these, so output is identical whether
+ * or not a fingerprint came from cache.
+ */
+interface MsgFingerprint {
+  lineLens: number[];
+  /** Windows that qualify (joined length ≥ MIN_WINDOW_CHARS). */
+  windows: { start: number; hash: number }[];
+  /** Long lines fingerprinted on their own. */
+  longLines: { idx: number; hash: number }[];
+}
+
+function fingerprint(text: string): MsgFingerprint | null {
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim().replace(/\s+/g, ' '))
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) return null;
+
+  const lineLens = lines.map((l) => l.length);
+  const windows: { start: number; hash: number }[] = [];
+  for (let i = 0; i + WINDOW <= lines.length; i++) {
+    const joined = lines.slice(i, i + WINDOW).join('\n');
+    if (joined.length < MIN_WINDOW_CHARS) continue;
+    windows.push({ start: i, hash: cyrb53(joined) });
+  }
+  const longLines: { idx: number; hash: number }[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (lineLens[i]! < LONG_LINE_CHARS) continue;
+    longLines.push({ idx: i, hash: cyrb53('L:' + lines[i]!) });
+  }
+  return { lineLens, windows, longLines };
+}
+
+// Cache rebuilt each call (mirrors the token cache): can't grow beyond
+// the current transcript, and unchanged messages skip re-fingerprinting.
+let fpCache = new Map<string, MsgFingerprint | null>();
+
 export function detectWaste(messages: ReadonlyArray<{ text: string }>): WasteReport {
   const seen = new Set<number>();
   let avoidableChars = 0;
   let blocks = 0;
   const refs: DupBlockRef[] = [];
+  const nextCache = new Map<string, MsgFingerprint | null>();
 
   for (let messageIndex = 0; messageIndex < messages.length; messageIndex++) {
-    const msg = messages[messageIndex]!;
-    const lines = msg.text
-      .split('\n')
-      .map((l) => l.trim().replace(/\s+/g, ' '))
-      .filter((l) => l.length > 0);
-    if (lines.length === 0) continue;
+    const text = messages[messageIndex]!.text;
+    let fp = nextCache.get(text);
+    if (fp === undefined) {
+      fp = fpCache.has(text) ? fpCache.get(text)! : fingerprint(text);
+      nextCache.set(text, fp);
+    }
+    if (!fp) continue;
 
-    const dup: boolean[] = new Array(lines.length).fill(false);
+    const { lineLens, windows, longLines } = fp;
+    const dup: boolean[] = new Array(lineLens.length).fill(false);
 
-    for (let i = 0; i + WINDOW <= lines.length; i++) {
-      const joined = lines.slice(i, i + WINDOW).join('\n');
-      if (joined.length < MIN_WINDOW_CHARS) continue;
-      const h = cyrb53(joined);
-      if (seen.has(h)) {
-        for (let j = i; j < i + WINDOW; j++) dup[j] = true;
+    for (const w of windows) {
+      if (seen.has(w.hash)) {
+        for (let j = w.start; j < w.start + WINDOW; j++) dup[j] = true;
       } else {
-        seen.add(h);
+        seen.add(w.hash);
       }
     }
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]!;
-      if (line.length < LONG_LINE_CHARS) continue;
-      const h = cyrb53('L:' + line);
-      if (seen.has(h)) dup[i] = true;
-      else seen.add(h);
+    for (const l of longLines) {
+      if (seen.has(l.hash)) dup[l.idx] = true;
+      else seen.add(l.hash);
     }
 
     let run = 0;
-    for (let i = 0; i <= lines.length; i++) {
-      if (i < lines.length && dup[i]) {
-        run += lines[i]!.length + 1;
+    for (let i = 0; i <= lineLens.length; i++) {
+      if (i < lineLens.length && dup[i]) {
+        run += lineLens[i]! + 1;
       } else if (run > 0) {
         if (run >= MIN_BLOCK_CHARS) {
           avoidableChars += run;
@@ -96,5 +133,6 @@ export function detectWaste(messages: ReadonlyArray<{ text: string }>): WasteRep
     }
   }
 
+  fpCache = nextCache;
   return { avoidableChars, blocks, refs };
 }

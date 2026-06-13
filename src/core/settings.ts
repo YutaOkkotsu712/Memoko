@@ -32,6 +32,8 @@ export interface Settings {
     bubbles: boolean;
     /** Usage % badge on the toolbar icon for the active tab. */
     badge: boolean;
+    /** Auto-detect the page's model and use its context window as budget. */
+    autoBudget: boolean;
   };
 }
 
@@ -42,7 +44,14 @@ export const DEFAULT_SETTINGS: Settings = {
   sites: { claude: true, chatgpt: true },
   draftMinTokens: 10,
   pasteAuditMinTokens: 1000,
-  features: { handoff: true, draftMeter: true, pasteAudit: true, bubbles: true, badge: true },
+  features: {
+    handoff: true,
+    draftMeter: true,
+    pasteAudit: true,
+    bubbles: true,
+    badge: true,
+    autoBudget: true,
+  },
 };
 
 const SETTINGS_KEY = 'settings';
@@ -81,7 +90,14 @@ export function mergeSettings(raw: unknown): Settings {
     merged.pasteAuditMinTokens = r.pasteAuditMinTokens;
   }
   if (r.features && typeof r.features === 'object') {
-    for (const key of ['handoff', 'draftMeter', 'pasteAudit', 'bubbles', 'badge'] as const) {
+    for (const key of [
+      'handoff',
+      'draftMeter',
+      'pasteAudit',
+      'bubbles',
+      'badge',
+      'autoBudget',
+    ] as const) {
       const v = r.features[key];
       if (typeof v === 'boolean') merged.features[key] = v;
     }
@@ -214,15 +230,23 @@ export type AdapterStatus = 'ok' | 'no-match';
 export interface AdapterHealth {
   status: AdapterStatus;
   at: number;
+  /** Detected model label + the budget it resolved to (auto-budget on). */
+  model?: string;
+  budget?: number;
 }
 
 const HEALTH_PREFIX = 'health:';
 
-export function reportAdapterHealth(siteId: string, status: AdapterStatus): void {
+export function reportAdapterHealth(
+  siteId: string,
+  status: AdapterStatus,
+  info?: { model?: string; budget?: number }
+): void {
   try {
-    void chrome.storage.local.set({
-      [HEALTH_PREFIX + siteId]: { status, at: Date.now() } satisfies AdapterHealth,
-    });
+    const entry: AdapterHealth = { status, at: Date.now() };
+    if (info?.model) entry.model = info.model.slice(0, 60);
+    if (typeof info?.budget === 'number') entry.budget = info.budget;
+    void chrome.storage.local.set({ [HEALTH_PREFIX + siteId]: entry });
   } catch {
     // non-fatal
   }
@@ -238,7 +262,12 @@ export async function loadAdapterHealth(
     for (const id of siteIds) {
       const v = got?.[HEALTH_PREFIX + id] as AdapterHealth | undefined;
       if (v && typeof v.at === 'number' && (v.status === 'ok' || v.status === 'no-match')) {
-        out[id] = v;
+        out[id] = {
+          status: v.status,
+          at: v.at,
+          ...(typeof v.model === 'string' ? { model: v.model } : {}),
+          ...(typeof v.budget === 'number' ? { budget: v.budget } : {}),
+        };
       }
     }
   } catch {

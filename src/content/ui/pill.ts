@@ -29,6 +29,8 @@ export interface PillStats {
   userSharePct?: number | null;
   /** Heaviest message in the conversation, if any sizable one exists. */
   heaviest?: { ordinal: number; role: string; tokens: number } | null;
+  /** Tokens from paste-attachments not visible in the transcript. */
+  attachedTokens?: number;
 }
 
 export interface PillUI {
@@ -123,21 +125,53 @@ const ATTEND_ZONE_IN = 235;
 const ATTEND_ZONE_OUT = 300; // hysteresis so the boundary doesn't flicker
 
 // ---- lifetime stats --------------------------------------------------------
-/** Stored in localStorage for the demo's parity. In the extension you may
- *  prefer to route these through chrome.storage / settings.ts so they survive
- *  across origins; swap loadStats/saveStats accordingly. */
+/** Persisted in chrome.storage.local — extension-private. NOT the host
+ *  page's localStorage, which the claude.ai / chatgpt.com page can read:
+ *  that would leak usage stats and breaks the "only settings persisted"
+ *  privacy guarantee. Hydrate via hydrateStats() before createPill so the
+ *  in-memory object the pill mutates starts from stored values. */
 const STATS_KEY = 'memoko-stats-v1';
 interface MemokoStats { chats: number; handoffs: number; saved: number; lastChatKey: string; }
-function loadStats(): MemokoStats {
+const statsCache: MemokoStats = { chats: 0, handoffs: 0, saved: 0, lastChatKey: '' };
+
+function coerceStats(raw: unknown): void {
+  if (!raw || typeof raw !== 'object') return;
+  const r = raw as Record<string, unknown>;
+  statsCache.chats = Math.max(0, (r.chats as number) | 0);
+  statsCache.handoffs = Math.max(0, (r.handoffs as number) | 0);
+  statsCache.saved = Math.max(0, (r.saved as number) | 0);
+  statsCache.lastChatKey = typeof r.lastChatKey === 'string' ? r.lastChatKey : '';
+}
+
+/** Load stored stats into the cache; await before the first loadStats(). */
+export async function hydrateStats(): Promise<void> {
   try {
-    const raw = JSON.parse(localStorage.getItem(STATS_KEY) || '{}');
-    return { chats: raw.chats | 0, handoffs: raw.handoffs | 0, saved: raw.saved | 0, lastChatKey: raw.lastChatKey || '' };
+    const got = await chrome.storage.local.get(STATS_KEY);
+    if (got?.[STATS_KEY] !== undefined) {
+      coerceStats(got[STATS_KEY]);
+      return;
+    }
+    // one-time migration off the host-origin localStorage, then erase it
+    const legacy = localStorage.getItem(STATS_KEY);
+    if (legacy) {
+      coerceStats(JSON.parse(legacy));
+      try { localStorage.removeItem(STATS_KEY); } catch { /* ignore */ }
+      void chrome.storage.local.set({ [STATS_KEY]: { ...statsCache } });
+    }
   } catch {
-    return { chats: 0, handoffs: 0, saved: 0, lastChatKey: '' };
+    // defaults stand
   }
 }
+
+function loadStats(): MemokoStats {
+  return statsCache;
+}
 function saveStats(s: MemokoStats): void {
-  try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  try {
+    void chrome.storage.local.set({ [STATS_KEY]: { ...s } });
+  } catch {
+    // ignore
+  }
 }
 function fmtTok(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1).replace(/\.0$/, '') + 'M';
@@ -1018,7 +1052,11 @@ export function createPill(opts: PillOptions): PillUI {
       } else {
         adjRow.hidden = true;
       }
-      vTokens.textContent = `~${formatTokenCount(stats_.tokens)} / ${formatTokenCount(stats_.budget)}`;
+      vTokens.textContent =
+        `~${formatTokenCount(stats_.tokens)} / ${formatTokenCount(stats_.budget)}` +
+        (stats_.attachedTokens && stats_.attachedTokens > 0
+          ? ` (+${formatTokenCount(stats_.attachedTokens)} attached)`
+          : '');
       vMsgs.textContent = String(stats_.messageCount);
       vDup.textContent =
         stats_.dupBlocks > 0

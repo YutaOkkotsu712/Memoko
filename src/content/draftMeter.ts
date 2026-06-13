@@ -1,5 +1,7 @@
 import cssText from './ui/meter.css?inline';
 import type { SiteAdapter } from '../adapters/types';
+import { recordAttachment } from '../core/attachments';
+import { cyrb53 } from '../core/hash';
 import { budgetFor, type Settings } from '../core/settings';
 import { estimateTokensText, formatTokenCount } from '../core/tokens';
 import {
@@ -230,7 +232,9 @@ export function createDraftMeter(
       // synthetic (isTrusted false). __chathpTest is a dev-only hook.
       if (!e.isTrusted && !('__chathpTest' in e)) return;
       const settings = getSettings();
-      if (!settings.features.pasteAudit || settings.sites[adapter.id] === false) return;
+      // Site-disabled stops everything; the pasteAudit toggle only gates
+      // the audit UI below — the attachment ledger runs regardless.
+      if (settings.sites[adapter.id] === false) return;
       const input = adapter.findChatInput();
       if (!input) return;
       const target = e.target;
@@ -238,6 +242,27 @@ export function createDraftMeter(
       const text = e.clipboardData?.getData('text/plain') ?? '';
       const tokens = estimateTokensText(text, settings.charsPerToken);
       if (tokens < settings.pasteAuditMinTokens) return;
+      // Attachment ledger: improves the core estimate even when the audit
+      // UI is off. After the editor ingests, if the paste did NOT land in
+      // the (transcript-able) draft, it became a hidden file attachment —
+      // record its cost so the health total reflects it.
+      setTimeout(() => {
+        try {
+          const convoId = adapter.conversationId(location);
+          if (!convoId) return; // new chat: skip (low value, id-transfer churn)
+          const probe = text
+            .split('\n')
+            .map((l) => l.trim())
+            .find((l) => l.length > 0)
+            ?.slice(0, 40);
+          const draft = adapter.readDraft();
+          const landedInline = !!probe && draft.includes(probe);
+          if (!landedInline) recordAttachment(convoId, cyrb53(text), tokens);
+        } catch {
+          // degrade silently
+        }
+      }, UPDATE_DEBOUNCE_MS + 80);
+      if (!settings.features.pasteAudit) return;
       lastPastedText = text;
       auditPasteTokens = tokens;
       setTimeout(update, UPDATE_DEBOUNCE_MS); // let the editor ingest first

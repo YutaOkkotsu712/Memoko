@@ -107,8 +107,23 @@ Performance: adapters cache each settled message's text per DOM element
 and the duplicate-content scan runs in browser idle time. Long
 transcripts cost roughly one message's worth of work per update.
 
-It can't see server-side context (system prompt, attached files, tool
-definitions, artifacts content), so treat it as a lower bound.
+**Model-aware budget**: when "Auto budget" is on (default), Memoko reads
+the page's model picker and uses that model's context window
+(claude.ai ~200k; chatgpt.com 16k–1M by model) instead of the manual
+per-site number, which becomes the fallback. The detected model shows in
+the popup's per-site health row.
+
+**Attachment ledger**: on claude.ai a large paste becomes a file
+attachment whose text never enters the transcript — so the
+visible-transcript estimate undercounts. Memoko records each such
+paste's token cost (in memory, per conversation) and folds it into the
+health total, shown as "(+~12k attached)" on the tokens line. It's
+conservative — keyed by content hash and never decremented — so it errs
+toward warning early.
+
+It still can't see server-side context it never observed (system prompt,
+tool definitions, file-picker uploads, artifacts), so treat it as a
+lower bound.
 
 ## Architecture notes
 

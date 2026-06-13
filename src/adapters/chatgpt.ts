@@ -51,6 +51,27 @@ const CONVO_PATH = /^\/c\/([0-9a-f][0-9a-f-]{7,})/i;
 /** Per-element text cache; entries die with their nodes. */
 const textCache = new WeakMap<Element, { text: string; streaming: boolean }>();
 
+/** Model-picker candidates (defensive; degrades to null). */
+const CHATGPT_MODEL_SELECTORS = [
+  '[data-testid="model-switcher-dropdown-button"]',
+  '[data-testid*="model-switcher" i]',
+  'button[aria-label*="model" i]',
+];
+
+/** First visible candidate's trimmed label, capped; null if none. */
+function detectModelLabel(selectors: string[]): string | null {
+  for (const sel of selectors) {
+    try {
+      const el = document.querySelector<HTMLElement>(sel);
+      const text = el?.textContent?.trim();
+      if (text && text.length <= 60) return text;
+    } catch {
+      // skip
+    }
+  }
+  return null;
+}
+
 function firstMatchingSelector(selectors: string[]): string | null {
   for (const sel of selectors) {
     try {
@@ -196,6 +217,10 @@ export const chatgptAdapter: SiteAdapter = {
 
   findChatInput(): HTMLElement | null {
     return findInput();
+  },
+
+  detectModel(): string | null {
+    return detectModelLabel(CHATGPT_MODEL_SELECTORS);
   },
 
   readDraft(): string {

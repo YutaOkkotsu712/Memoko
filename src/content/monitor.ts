@@ -1,6 +1,8 @@
 import type { SiteAdapter, TranscriptMessage } from '../adapters/types';
+import { attachmentTokens } from '../core/attachments';
 import { burnPerMin, minutesUntil, pruneSamples, type BurnSample } from '../core/burn';
 import { debounce } from '../core/debounce';
+import { matchModelBudget } from '../core/models';
 import {
   budgetFor,
   loadCoachMark,
@@ -26,7 +28,7 @@ import { MEMOKO_STATUS } from './ui/avatar';
 import { detectWaste, EMPTY_WASTE, type WasteReport } from '../core/waste';
 import { createDraftMeter } from './draftMeter';
 import { createHandoff } from './handoff';
-import { createPill, type PillStats, type PillUI } from './ui/pill';
+import { createPill, hydrateStats, type PillStats, type PillUI } from './ui/pill';
 
 const RECOMPUTE_DEBOUNCE_MS = 400;
 const AGE_REFRESH_MS = 30_000;
@@ -64,6 +66,9 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
     }
   };
   const handoff = createHandoff(adapter, refreshHandoffUI);
+
+  // Hydrate lifetime stats before the pill reads them (no first-paint zero).
+  await hydrateStats();
 
   const ui = createPill({
     initial: pillState,
@@ -301,14 +306,20 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   // only meaningful once the SPA has had time to render, and writes are
   // throttled to status changes / a slow refresh.
   const bootAt = Date.now();
-  let lastHealth: { status: AdapterStatus; at: number } | null = null;
-  const noteHealth = (status: AdapterStatus) => {
+  let lastHealth: { status: AdapterStatus; model: string; at: number } | null = null;
+  const noteHealth = (status: AdapterStatus, model?: string, budget?: number) => {
     if (status === 'no-match' && Date.now() - bootAt < 8000) return;
-    if (lastHealth && lastHealth.status === status && Date.now() - lastHealth.at < 300_000) {
+    // Re-report on status OR model change, else throttle to 5 min.
+    if (
+      lastHealth &&
+      lastHealth.status === status &&
+      lastHealth.model === (model ?? '') &&
+      Date.now() - lastHealth.at < 300_000
+    ) {
       return;
     }
-    lastHealth = { status, at: Date.now() };
-    reportAdapterHealth(adapter.id, status);
+    lastHealth = { status, model: model ?? '', at: Date.now() };
+    reportAdapterHealth(adapter.id, status, { model, budget });
   };
 
   // If a handoff summary was stashed for this site and this is a fresh
@@ -356,19 +367,35 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
         noteHealth('no-match');
         return hide();
       }
-      noteHealth(transcript.messages.length > 0 ? 'ok' : 'no-match');
+      // Model-aware budget: detect the page's model and use its context
+      // window; fall back to the manual per-site budget.
+      const detected =
+        settings.features.autoBudget && adapter.detectModel
+          ? matchModelBudget(adapter.detectModel())
+          : null;
+      const budget = detected?.budget ?? budgetFor(settings, adapter.id);
+
+      noteHealth(
+        transcript.messages.length > 0 ? 'ok' : 'no-match',
+        detected?.name,
+        detected ? budget : undefined
+      );
       lastMessages = transcript.messages;
 
       if (!firstSeen.has(convoId)) firstSeen.set(convoId, Date.now());
       const now = Date.now();
 
-      const budget = budgetFor(settings, adapter.id);
       const observedTokens = transcriptTokens(transcript.messages, settings.charsPerToken);
       const matchingEstimate =
         estimateCache && estimateCache.charsPerToken === settings.charsPerToken
           ? estimateCache
           : null;
-      const tokens = Math.max(observedTokens, matchingEstimate?.tokens ?? 0);
+      // baseTokens is transcript-derived and cacheable; attachment tokens
+      // are added AFTER (and kept out of rememberEstimate) so the
+      // restored estimate can't double-count them on the next tick.
+      const baseTokens = Math.max(observedTokens, matchingEstimate?.tokens ?? 0);
+      const attachedTokens = attachmentTokens(convoId);
+      const tokens = baseTokens + attachedTokens;
       const usagePct = budget > 0 ? (tokens / budget) * 100 : 0;
 
       // Burn rate: sample settled token counts for this conversation.
@@ -384,7 +411,9 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       if (!transcript.anyStreaming && transcript.charCount !== wasteAnalyzedAt) {
         scheduleWasteAnalysis(transcript.messages, transcript.charCount);
       }
-      if (!transcript.anyStreaming && observedTokens === tokens) {
+      // Sample once the transcript is fully loaded (cache not inflating
+      // past what we observe); the sampled total includes attachments.
+      if (!transcript.anyStreaming && observedTokens === baseTokens) {
         const lastSample = burnSamples[burnSamples.length - 1];
         if (!lastSample || lastSample.tokens !== tokens) {
           burnSamples.push({ at: now, tokens });
@@ -426,7 +455,7 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       rememberEstimate({
         siteId: adapter.id,
         conversationId: convoId,
-        tokens,
+        tokens: baseTokens,
         charsPerToken: settings.charsPerToken,
         messageCount,
         charCount: Math.max(transcript.charCount, matchingEstimate?.charCount ?? 0),
@@ -446,10 +475,14 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
         streaming: transcript.anyStreaming,
         dupTokens,
         dupBlocks,
+        attachedTokens,
         bubble: computeBubble(healthState(adjustedPct, settings.thresholds)),
         burnTokensPerMin: perMin,
         minutesToCritical,
-        userSharePct: tokens > 0 && observedTokens === tokens ? (userTokens / tokens) * 100 : null,
+        userSharePct:
+          observedTokens > 0 && observedTokens === baseTokens
+            ? (userTokens / observedTokens) * 100
+            : null,
         heaviest,
       };
 
@@ -516,7 +549,10 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
 
   // Keyboard shortcuts, relayed by the service worker (chrome.commands).
   try {
-    chrome.runtime.onMessage.addListener((msg: unknown) => {
+    chrome.runtime.onMessage.addListener((msg: unknown, sender) => {
+      // Only our own service worker may drive the UI (defense-in-depth;
+      // the host page can't reach chrome.runtime anyway).
+      if (sender.id !== chrome.runtime.id) return;
       const m = msg as { type?: string; command?: string };
       if (!m || m.type !== 'chathp:command' || !visible) return;
       if (m.command === 'toggle-panel') {

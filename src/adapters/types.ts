@@ -61,6 +61,13 @@ export interface SiteAdapter {
   /** The chat input element, or null if not found. */
   findChatInput(): HTMLElement | null;
 
+  /**
+   * Raw model label shown in the page's model picker (e.g. "Claude Opus
+   * 4.8", "ChatGPT 4o"), or null if not found. Optional — used to
+   * auto-size the context budget; degrades to the manual budget.
+   */
+  detectModel?(): string | null;
+
   /** Current draft text in the chat input, '' if empty or not found. */
   readDraft(): string;
 

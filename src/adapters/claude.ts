@@ -57,6 +57,27 @@ const CONVO_PATH = /^\/chat\/([0-9a-f][0-9a-f-]{7,})/i;
 /** Per-element text cache; entries die with their nodes. */
 const textCache = new WeakMap<Element, { text: string; streaming: boolean }>();
 
+/** Model-picker candidates (defensive; degrades to null). */
+const CLAUDE_MODEL_SELECTORS = [
+  '[data-testid="model-selector-dropdown"]',
+  '[data-testid*="model-selector" i]',
+  'button[aria-haspopup="menu"][aria-label*="model" i]',
+];
+
+/** First visible candidate's trimmed label, capped; null if none. */
+function detectModelLabel(selectors: string[]): string | null {
+  for (const sel of selectors) {
+    try {
+      const el = document.querySelector<HTMLElement>(sel);
+      const text = el?.textContent?.trim();
+      if (text && text.length <= 60) return text;
+    } catch {
+      // skip
+    }
+  }
+  return null;
+}
+
 function firstMatchingSelector(selectors: string[]): string | null {
   for (const sel of selectors) {
     try {
@@ -153,6 +174,10 @@ export const claudeAdapter: SiteAdapter = {
 
   findChatInput(): HTMLElement | null {
     return findInput();
+  },
+
+  detectModel(): string | null {
+    return detectModelLabel(CLAUDE_MODEL_SELECTORS);
   },
 
   readDraft(): string {

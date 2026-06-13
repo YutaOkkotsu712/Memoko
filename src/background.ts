@@ -47,11 +47,15 @@ chrome.commands?.onCommand.addListener((command) => {
 
 chrome.runtime.onMessage.addListener((msg: unknown, sender) => {
   try {
+    // Only our own content scripts may set the badge.
+    if (sender.id !== chrome.runtime.id) return;
     const m = msg as { type?: string; text?: string; state?: string };
     if (!m || m.type !== 'chathp:badge') return;
     const tabId = sender.tab?.id;
     if (typeof tabId !== 'number') return;
-    void chrome.action.setBadgeText({ tabId, text: typeof m.text === 'string' ? m.text : '' });
+    // Clamp defensively — the badge only has room for a few glyphs.
+    const text = typeof m.text === 'string' ? m.text.slice(0, 6) : '';
+    void chrome.action.setBadgeText({ tabId, text });
     void chrome.action.setBadgeBackgroundColor({
       tabId,
       color: BADGE_COLORS[String(m.state)] ?? '#9aa1ad',

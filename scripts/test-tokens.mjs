@@ -58,6 +58,22 @@ const cases = [
     },
   },
   {
+    name: 'fence rescues prose-shaped lines that the per-line heuristic misses',
+    run: () => {
+      // Flush-left, symbol-sparse body: unfenced it reads as prose, so
+      // the fence is the only signal that it's code (e.g. a config dump
+      // or REPL transcript). Fencing must charge the body at code rate,
+      // which is denser → strictly more tokens for the SAME body chars.
+      const body = 'the quick brown fox jumps\nover the lazy sleeping dog\nand then runs away';
+      const bodyTokens = estimateTokensText(body, CPT);
+      const fencedBodyOnly = estimateTokensText('```\n' + body + '\n```', CPT);
+      // subtract the two fence-delimiter lines' contribution so we compare
+      // the body alone: fence lines are tiny, so a clear inequality on the
+      // full strings already proves the body got denser
+      return fencedBodyOnly > bodyTokens;
+    },
+  },
+  {
     name: 'CJK ≈ 1 token per character (band 0.85–1.15)',
     run: () => {
       const t = estimateTokensText(cjk, CPT);

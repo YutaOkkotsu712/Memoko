@@ -1,13 +1,13 @@
 {
   "name": "chathp",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --experimental-strip-types scripts/test-cleanups.mjs && node --experimental-strip-types scripts/test-waste.mjs && node --experimental-strip-types scripts/test-health.mjs && node --experimental-strip-types scripts/test-tokens.mjs && node --experimental-strip-types scripts/test-settings.mjs && node --experimental-strip-types scripts/test-burn.mjs",
+    "test": "node --experimental-strip-types scripts/test-cleanups.mjs && node --experimental-strip-types scripts/test-waste.mjs && node --experimental-strip-types scripts/test-health.mjs && node --experimental-strip-types scripts/test-tokens.mjs && node --experimental-strip-types scripts/test-settings.mjs && node --experimental-strip-types scripts/test-burn.mjs && node --experimental-strip-types scripts/test-models.mjs",
     "icons": "node scripts/gen-icons.mjs",
     "bundle:dev": "node scripts/dev-bundle.mjs",
     "package": "npm run build && npm test && cd dist && zip -rq ../chathp-v$npm_package_version.zip . && cd .. && echo packaged: chathp-v$npm_package_version.zip"
