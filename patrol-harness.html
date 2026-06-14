@@ -1,0 +1,1527 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Memoko Motion Lab</title>
+  <link rel="stylesheet" href="./src/content/ui/pill.css" />
+  <link rel="stylesheet" href="./memoko-extra.css" />
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255, 207, 110, 0.12), transparent 34%),
+        linear-gradient(180deg, #17191f, #0d0f14 72%);
+      color: #edf0f6;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
+    }
+
+    .controls,
+    .stage {
+      padding: 28px;
+    }
+
+    .controls {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(11, 13, 17, 0.72);
+      backdrop-filter: blur(12px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f4c978;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      margin-top: 10px;
+      font-size: 27px;
+      line-height: 1.1;
+    }
+
+    .lede {
+      margin-top: 10px;
+      color: #b6bcc8;
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 32ch;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .block {
+      display: grid;
+      gap: 10px;
+    }
+
+    .block h2 {
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: #f5f7fb;
+    }
+
+    .chip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    button,
+    .toggle {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: #edf0f6;
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    button {
+      min-height: 42px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+    }
+
+    button:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    button.active {
+      border-color: rgba(255, 207, 110, 0.68);
+      background: rgba(255, 207, 110, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(255, 207, 110, 0.18);
+    }
+
+    .chip {
+      display: grid;
+      justify-items: start;
+      text-align: left;
+      gap: 2px;
+    }
+
+    .chip strong,
+    .mode-chip strong {
+      font-size: 13px;
+      line-height: 1.15;
+      font-weight: 700;
+    }
+
+    .chip span,
+    .mode-chip span,
+    .status-line,
+    .metric span,
+    .metric code {
+      color: #aab1bc;
+    }
+
+    .chip span,
+    .mode-chip span {
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .mode-chip {
+      min-height: 46px;
+      padding: 10px;
+      display: grid;
+      gap: 2px;
+      text-align: left;
+      align-content: start;
+    }
+
+    .toggle-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .toggle {
+      min-height: 44px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .toggle input {
+      inline-size: 16px;
+      block-size: 16px;
+      accent-color: #ffcf6e;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .action-row button,
+    .wide {
+      min-height: 44px;
+    }
+
+    .wide {
+      width: 100%;
+    }
+
+    .run-button {
+      background: rgba(255, 207, 110, 0.14);
+      border-color: rgba(255, 207, 110, 0.42);
+      color: #fff3d4;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .metric {
+      display: grid;
+      gap: 3px;
+    }
+
+    .metric strong,
+    .metric code {
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .metric code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 22px;
+    }
+
+    .stage-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stage-head h2 {
+      margin-top: 8px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .stage-copy {
+      margin-top: 9px;
+      max-width: 54ch;
+      color: #b7bec9;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .status-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #eef2f9;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .preview-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 480px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255, 207, 110, 0.08), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+      overflow: hidden;
+      position: relative;
+    }
+
+    .preview-wrap::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 68px 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+      pointer-events: none;
+    }
+
+    .preview {
+      width: min(720px, 100%);
+      min-height: 100%;
+      display: grid;
+      place-items: end center;
+      padding: 86px 32px 52px;
+    }
+
+    .scale-wrap {
+      transform: scale(2.5);
+      transform-origin: center bottom;
+    }
+
+    .pose-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+    }
+
+    .pose-card {
+      min-height: 110px;
+      padding: 10px 8px 12px;
+      display: grid;
+      justify-items: center;
+      align-content: space-between;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .pose-card .thumb {
+      min-height: 54px;
+      display: grid;
+      place-items: end center;
+    }
+
+    .pose-card strong {
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .pose-card span {
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .sample-note {
+      font-size: 11px;
+      color: #aab1bc;
+    }
+
+    .panel {
+      width: 230px;
+    }
+
+    .panel[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 1120px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .stage-head {
+        flex-direction: column;
+      }
+
+      .status-pills {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .controls,
+      .stage {
+        padding: 20px;
+      }
+
+      .mode-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .chip-grid,
+      .action-row {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-wrap {
+        min-height: 380px;
+      }
+
+      .scale-wrap {
+        transform: scale(1.95);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="controls">
+      <div class="eyebrow">Local animation harness</div>
+      <h1>Memoko Motion Lab</h1>
+      <p class="lede">
+        One place to inspect patrol, watch, idle, reaction, and easter egg animations
+        without bouncing between partial test pages.
+      </p>
+
+      <div class="stack">
+        <div class="block">
+          <h2>Health State</h2>
+          <div class="chip-grid" id="health-controls"></div>
+        </div>
+
+        <div class="block">
+          <h2>Primary Modes</h2>
+          <div class="mode-grid" id="mode-controls"></div>
+        </div>
+
+        <div class="block">
+          <h2>Effects</h2>
+          <div class="action-row">
+            <button type="button" data-effect="pet">Pet reaction</button>
+            <button type="button" data-effect="berry">Berry snack</button>
+            <button type="button" data-effect="konami">Konami</button>
+            <button type="button" data-effect="summit">Summit clear</button>
+            <button type="button" data-effect="wake">Wake from nap</button>
+            <button type="button" data-effect="damage">Damage -12 HP</button>
+          </div>
+        </div>
+
+        <div class="block">
+          <h2>Toggles</h2>
+          <div class="toggle-grid">
+            <label class="toggle">
+              <span>Open panel</span>
+              <input id="toggle-panel" type="checkbox" />
+            </label>
+            <label class="toggle">
+              <span>Streaming pause</span>
+              <input id="toggle-streaming" type="checkbox" />
+            </label>
+            <label class="toggle">
+              <span>Pointer tracking</span>
+              <input id="toggle-tracking" type="checkbox" checked />
+            </label>
+            <label class="toggle">
+              <span>Light theme</span>
+              <input id="toggle-theme" type="checkbox" />
+            </label>
+          </div>
+        </div>
+
+        <div class="block">
+          <h2>Full Sweep</h2>
+          <button class="run-button wide" id="suite-button" type="button">Run full suite</button>
+          <div class="sample-note">Cycles patrol, idle, reactions, wake, berry snack, summit clear, and Konami in one pass.</div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <span>Effective pose</span>
+            <strong id="readout-pose">fresh</strong>
+          </div>
+          <div class="metric">
+            <span>Health and HP</span>
+            <strong id="readout-health">Fresh · HP 88</strong>
+          </div>
+          <div class="metric">
+            <span>Active classes</span>
+            <code id="readout-classes">root</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head">
+        <div>
+          <div class="eyebrow">Preview stage</div>
+          <h2 id="stage-title">Fresh patrol</h2>
+          <p class="stage-copy" id="stage-copy">
+            Edge-to-edge patrol using the current health state and the same run-width logic as the real pill.
+          </p>
+        </div>
+        <div class="status-pills">
+          <span class="status-pill" id="suite-status">Manual mode</span>
+          <span class="status-pill" id="theme-status">Dark theme</span>
+        </div>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="preview" id="preview">
+          <div class="scale-wrap">
+            <div class="root" id="demo-root" data-state="fresh" data-theme="dark">
+              <div class="panel" hidden>
+                <div class="panel-head">
+                  <span class="avatar"></span>
+                  <span class="title">MEMOKO</span>
+                  <span class="badge">Fresh</span>
+                </div>
+                <div class="hpline">
+                  <span>HP</span><b class="v-hp">88</b><i>/ 100</i>
+                </div>
+                <div class="segbar large">
+                  <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span>
+                  <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg"></span>
+                </div>
+                <div class="status">Memoko is feeling fresh!</div>
+                <div class="rows">
+                  <div class="row"><span>Context used</span><i class="dots"></i><b class="v-pct">~12%</b></div>
+                  <div class="row"><span>Est. tokens</span><i class="dots"></i><b class="v-tokens">~23k / 190k</b></div>
+                  <div class="row"><span>Messages</span><i class="dots"></i><b class="v-msgs">9</b></div>
+                  <div class="row"><span>Watching</span><i class="dots"></i><b class="v-age">test harness</b></div>
+                </div>
+                <div class="foot">Local harness only</div>
+              </div>
+
+              <div class="pillspot">
+                <span class="speech" role="status" hidden><span class="speech-text"></span></span>
+                <span class="zzz" aria-hidden="true"><i>z</i><i>z</i><i>z</i></span>
+                <span class="cheerburst" aria-hidden="true"></span>
+                <span class="sprite" aria-hidden="true">
+                  <span class="pop"><span class="trk"><span class="flip"></span></span></span>
+                </span>
+                <button class="pill" type="button" title="Memoko local animation harness" aria-expanded="false">
+                  <span class="hp-tag">HP</span>
+                  <span class="segs">
+                    <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span>
+                    <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span>
+                  </span>
+                  <span class="pct">88</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pose-gallery" id="pose-gallery"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { faceSvg, spriteSvg, MEMOKO_STATUS } from "./sprite.js";
+
+    window.Memoko = { faceSvg, spriteSvg, STATUS: MEMOKO_STATUS };
+
+    (function () {
+      const Memoko = window.Memoko;
+      const HEALTH_PRESETS = {
+        fresh: { label: "Fresh", hp: 88, blurb: "Fast patrol with the biggest run." },
+        healthy: { label: "Healthy", hp: 55, blurb: "Cruising pace with the medium walk." },
+        heavy: { label: "Heavy", hp: 24, blurb: "Slow trudge with the tired gait." },
+        critical: { label: "Critical", hp: 8, blurb: "Collapsed lie-down state." }
+      };
+
+      const MODE_PRESETS = {
+        patrol: {
+          label: "Patrol",
+          pose: (health) => health,
+          summary: "Edge-to-edge patrol using the current health state and the same run-width logic as the real pill."
+        },
+        watch: {
+          label: "Watch",
+          pose: "watch",
+          summary: "Forward-facing attention pose with live head and eye tracking."
+        },
+        wave: {
+          label: "Wave",
+          pose: "wave",
+          summary: "Greeting hop with the raised arm wave."
+        },
+        hurt: {
+          label: "Hurt",
+          pose: "hurt",
+          summary: "Brief damage flinch pose used when HP drops."
+        },
+        cheer: {
+          label: "Cheer",
+          pose: "cheer",
+          classes: ["celebrate"],
+          summary: "Handoff celebration hop with confetti burst."
+        },
+        sit: {
+          label: "Sit",
+          pose: "sit",
+          classes: ["idle"],
+          summary: "Base idle sit with gentle breathing and dangle legs."
+        },
+        laptop: {
+          label: "Laptop",
+          pose: "laptop",
+          classes: ["idle"],
+          summary: "Typing idle with screen glow and head nod."
+        },
+        book: {
+          label: "Book",
+          pose: "book",
+          classes: ["idle"],
+          summary: "Quiet reading idle with a page flutter and little nod."
+        },
+        doodle: {
+          label: "Doodle",
+          pose: "doodle",
+          classes: ["idle"],
+          summary: "Notebook idle with scribble loop and glance scan."
+        },
+        kick: {
+          label: "Kick",
+          pose: "sit",
+          classes: ["idle", "idle-kick"],
+          summary: "Seated leg-kick variation built on the sit art."
+        },
+        peek: {
+          label: "Peek",
+          pose: "sit",
+          classes: ["idle", "idle-peek"],
+          summary: "Seated glance-around variation built on the sit art."
+        },
+        yawn: {
+          label: "Yawn",
+          pose: "yawn",
+          classes: ["idle"],
+          summary: "Stand-up stretch and yawning transition before nap."
+        },
+        nap: {
+          label: "Nap",
+          pose: "nap",
+          classes: ["idle", "idle-nap"],
+          summary: "Deep sleeping pose with floating zzz."
+        }
+      };
+
+      const MODE_ORDER = [
+        "patrol",
+        "watch",
+        "wave",
+        "hurt",
+        "cheer",
+        "sit",
+        "laptop",
+        "book",
+        "doodle",
+        "kick",
+        "peek",
+        "yawn",
+        "nap"
+      ];
+
+      const PET_REACTIONS = {
+        fresh: {
+          className: "",
+          hearts: 4,
+          durationMs: 720,
+          lines: ["Ehehe~", "Boop!", "Ready to run.", "Tiny boost received."]
+        },
+        healthy: {
+          className: "pet-soft",
+          hearts: 3,
+          durationMs: 680,
+          lines: ["Still doing okay.", "Thanks, I am steady.", "We have room.", "Little morale bump."]
+        },
+        heavy: {
+          className: "pet-tired",
+          hearts: 1,
+          durationMs: 760,
+          lines: ["Thanks... I needed that.", "Getting heavy now.", "Maybe handoff soon?", "I can keep going, slowly."]
+        },
+        critical: {
+          className: "pet-critical",
+          hearts: 0,
+          durationMs: 900,
+          lines: ["I am spent. Please hand this off.", "Too full... fresh chat?", "I cannot carry much more.", "Handoff would help me breathe."]
+        }
+      };
+
+      const SUITE_STEPS = [
+        { label: "Fresh patrol", health: "fresh", mode: "patrol", wait: 1800 },
+        { label: "Healthy patrol", health: "healthy", mode: "patrol", wait: 1800 },
+        { label: "Heavy patrol", health: "heavy", mode: "patrol", wait: 2100 },
+        { label: "Critical collapse", health: "critical", mode: "patrol", wait: 1800 },
+        { label: "Watch pose", health: "fresh", mode: "watch", wait: 1600 },
+        { label: "Wave hello", health: "fresh", mode: "wave", wait: 1600 },
+        { label: "Damage flinch", health: "fresh", mode: "patrol", action: "damage", wait: 1500 },
+        { label: "Cheer celebration", health: "fresh", mode: "cheer", wait: 1700 },
+        { label: "Sit idle", health: "fresh", mode: "sit", wait: 1700 },
+        { label: "Laptop idle", health: "fresh", mode: "laptop", wait: 1800 },
+        { label: "Book idle", health: "fresh", mode: "book", wait: 1800 },
+        { label: "Doodle idle", health: "fresh", mode: "doodle", wait: 1800 },
+        { label: "Kick variant", health: "fresh", mode: "kick", wait: 1500 },
+        { label: "Peek variant", health: "fresh", mode: "peek", wait: 1700 },
+        { label: "Yawn transition", health: "fresh", mode: "yawn", wait: 1700 },
+        { label: "Nap pose", health: "fresh", mode: "nap", wait: 1800 },
+        { label: "Wake from nap", action: "wake", wait: 2200 },
+        { label: "Heavy pet reaction", health: "heavy", mode: "patrol", action: "pet", wait: 1300 },
+        { label: "Berry snack", health: "fresh", mode: "patrol", action: "berry", wait: 1500 },
+        { label: "Summit clear", health: "fresh", mode: "patrol", action: "summit", wait: 1800 },
+        { label: "Konami dance", health: "fresh", mode: "patrol", action: "konami", wait: 1900 }
+      ];
+
+      const root = document.getElementById("demo-root");
+      const preview = document.getElementById("preview");
+      const panel = root.querySelector(".panel");
+      const avatar = root.querySelector(".avatar");
+      const badge = root.querySelector(".badge");
+      const statusEl = root.querySelector(".status");
+      const pct = root.querySelector(".pct");
+      const pill = root.querySelector(".pill");
+      const pillspot = root.querySelector(".pillspot");
+      const sprite = root.querySelector(".sprite");
+      const trk = root.querySelector(".trk");
+      const flip = root.querySelector(".flip");
+      const speech = root.querySelector(".speech");
+      const speechText = root.querySelector(".speech-text");
+      const cheerburst = root.querySelector(".cheerburst");
+      const pillSegs = root.querySelector(".segs");
+      const panelSegs = root.querySelector(".segbar");
+      const vHp = root.querySelector(".v-hp");
+      const vPct = root.querySelector(".v-pct");
+      const vTokens = root.querySelector(".v-tokens");
+      const vMsgs = root.querySelector(".v-msgs");
+      const vAge = root.querySelector(".v-age");
+      const healthControls = document.getElementById("health-controls");
+      const modeControls = document.getElementById("mode-controls");
+      const poseGallery = document.getElementById("pose-gallery");
+      const suiteButton = document.getElementById("suite-button");
+      const togglePanel = document.getElementById("toggle-panel");
+      const toggleStreaming = document.getElementById("toggle-streaming");
+      const toggleTracking = document.getElementById("toggle-tracking");
+      const toggleTheme = document.getElementById("toggle-theme");
+      const stageTitle = document.getElementById("stage-title");
+      const stageCopy = document.getElementById("stage-copy");
+      const suiteStatus = document.getElementById("suite-status");
+      const themeStatus = document.getElementById("theme-status");
+      const readoutPose = document.getElementById("readout-pose");
+      const readoutHealth = document.getElementById("readout-health");
+      const readoutClasses = document.getElementById("readout-classes");
+
+      speech.hidden = true;
+      trk.appendChild(speech);
+
+      const state = {
+        hp: 88,
+        health: "fresh",
+        mode: "patrol",
+        overlayMode: null,
+        panelOpen: false,
+        streaming: false,
+        tracking: true,
+        theme: "dark",
+        suiteRunning: false,
+        statusLabel: "Manual mode"
+      };
+
+      let currentPose = null;
+      let mkTrack = null;
+      let mkEyes = null;
+      let lastPatrolSpriteWidth = 0;
+      let suiteToken = 0;
+      let speechTimer = 0;
+      let petTimer = 0;
+      let konamiTimer = 0;
+      let berryTimer = 0;
+      let summitTimer = 0;
+      let hurtTimer = 0;
+      let wakeTimerA = 0;
+      let wakeTimerB = 0;
+      let effectTimer = 0;
+      let damageFlashTimer = 0;
+      let criticalFlashTimer = 0;
+      let cursor = { x: -9999, y: -9999 };
+
+      const healthButtons = new Map();
+      const modeButtons = new Map();
+      const galleryButtons = new Map();
+
+      function pick(list) {
+        return list[Math.floor(Math.random() * list.length)];
+      }
+
+      function fmtTok(value) {
+        if (value >= 1000000) {
+          const scaled = (value / 1000000).toFixed(value >= 10000000 ? 0 : 1);
+          return scaled.replace(/\.0$/, "") + "M";
+        }
+        if (value >= 1000) return Math.round(value / 1000) + "k";
+        return String(Math.round(value));
+      }
+
+      function stateForHp(hp) {
+        if (hp >= 80) return "fresh";
+        if (hp >= 50) return "healthy";
+        if (hp >= 22) return "heavy";
+        return "critical";
+      }
+
+      function isPatrolPose(pose) {
+        return pose === "fresh" || pose === "healthy" || pose === "heavy";
+      }
+
+      function effectiveModeId() {
+        return state.overlayMode || state.mode;
+      }
+
+      function effectivePreset() {
+        return MODE_PRESETS[effectiveModeId()];
+      }
+
+      function effectivePose() {
+        const preset = effectivePreset();
+        return typeof preset.pose === "function" ? preset.pose(state.health) : preset.pose;
+      }
+
+      function activeClassList() {
+        return Array.from(root.classList)
+          .filter((name) => name !== "root")
+          .join(" ") || "root";
+      }
+
+      function renderedSpriteWidth() {
+        const svg = flip.querySelector("svg.sp");
+        const scale = previewScale();
+        return (
+          (svg && svg.getBoundingClientRect().width / scale) ||
+          flip.getBoundingClientRect().width / scale ||
+          sprite.getBoundingClientRect().width / scale ||
+          0
+        );
+      }
+
+      function previewScale() {
+        const layoutWidth = pill.offsetWidth || pill.clientWidth || 0;
+        const visualWidth = pill.getBoundingClientRect().width || 0;
+        if (layoutWidth <= 0 || visualWidth <= 0) return 1;
+        return visualWidth / layoutWidth;
+      }
+
+      function syncRunWidth() {
+        const scale = previewScale();
+        const pillWidth =
+          pill.offsetWidth ||
+          pill.clientWidth ||
+          pill.getBoundingClientRect().width / scale ||
+          pillspot.offsetWidth;
+        if (pillWidth <= 0) return;
+
+        const pose = effectivePose();
+        const measuredSpriteWidth = renderedSpriteWidth();
+        if (isPatrolPose(pose) && measuredSpriteWidth > 0) {
+          lastPatrolSpriteWidth = measuredSpriteWidth;
+        }
+
+        const spriteWidth = lastPatrolSpriteWidth > 0 ? lastPatrolSpriteWidth : measuredSpriteWidth || 30;
+        const leftInset = Number.parseFloat(getComputedStyle(sprite).left || "0") || 0;
+        const containedRunWidth = pillWidth - spriteWidth - leftInset * 2;
+        if (containedRunWidth <= 0) return;
+
+        sprite.style.setProperty("--run-w", containedRunWidth.toFixed(1) + "px");
+        sprite.style.setProperty("--run-w-fresh", containedRunWidth.toFixed(1) + "px");
+        sprite.style.setProperty("--run-w-healthy", containedRunWidth.toFixed(1) + "px");
+        sprite.style.setProperty("--run-w-heavy", containedRunWidth.toFixed(1) + "px");
+      }
+
+      function resetTrackingRig() {
+        if (mkTrack) mkTrack.style.transform = "";
+        if (mkEyes) mkEyes.style.transform = "";
+        mkTrack = null;
+        mkEyes = null;
+      }
+
+      function shouldTrack() {
+        return state.tracking && effectiveModeId() === "watch" && !root.classList.contains("startle");
+      }
+
+      function driveAttention() {
+        if (!shouldTrack()) {
+          resetTrackingRig();
+          return;
+        }
+
+        if (!mkTrack || !mkEyes) {
+          mkTrack = flip.querySelector(".mk-track");
+          mkEyes = flip.querySelector(".mk-eyes");
+        }
+        if (!mkTrack || !mkEyes) return;
+
+        const rect = sprite.getBoundingClientRect();
+        const tx = rect.left + rect.width * 0.58;
+        const ty = rect.top + rect.height * 0.36;
+        const dx = Math.max(-1, Math.min(1, (cursor.x - tx) / 170));
+        const dy = Math.max(-1, Math.min(1, (cursor.y - ty) / 150));
+
+        mkTrack.style.transform =
+          "rotate(" + (dx * 12).toFixed(1) + "deg) translate(" +
+          (dx * 1.4).toFixed(2) + "px," +
+          (dy * 1.0 - 0.2).toFixed(2) + "px)";
+        mkEyes.style.transform =
+          "translate(" + (dx * 1.2).toFixed(2) + "px," + (dy * 1.0).toFixed(2) + "px)";
+      }
+
+      function setSprite(pose) {
+        if (pose === currentPose) {
+          driveAttention();
+          return;
+        }
+
+        currentPose = pose;
+        flip.innerHTML = '<span class="mk-swap">' + Memoko.spriteSvg(pose, 30) + "</span>";
+        resetTrackingRig();
+        syncRunWidth();
+        driveAttention();
+      }
+
+      function setSegments(wrap, hp) {
+        const cells = Array.from(wrap.querySelectorAll(".seg"));
+        const filled = hp > 0 ? Math.max(1, Math.round((hp / 100) * cells.length)) : 0;
+        cells.forEach((cell, index) => {
+          const wasOn = cell.classList.contains("on");
+          const isOn = index < filled;
+          cell.classList.toggle("on", isOn);
+          if (wasOn && !isOn) {
+            cell.classList.remove("draining");
+            void cell.offsetWidth;
+            cell.classList.add("draining");
+            window.setTimeout(() => cell.classList.remove("draining"), 620);
+          }
+        });
+      }
+
+      function showBubble(text, duration) {
+        speechText.textContent = text;
+        speech.hidden = false;
+        speech.classList.remove("pop");
+        void speech.offsetWidth;
+        speech.classList.add("pop");
+        window.clearTimeout(speechTimer);
+        speechTimer = window.setTimeout(() => {
+          speech.hidden = true;
+        }, duration || 2600);
+      }
+
+      function flashRootClass(name, duration) {
+        root.classList.remove(name);
+        void root.offsetWidth;
+        root.classList.add(name);
+        return window.setTimeout(() => root.classList.remove(name), duration);
+      }
+
+      function spawnHearts(count) {
+        if (!count) return;
+        for (let i = 0; i < count; i += 1) {
+          const heart = document.createElement("span");
+          heart.className = "heart";
+          heart.textContent = "\u2665";
+          heart.style.left = (28 + (Math.random() * 26 - 13)).toFixed(0) + "px";
+          heart.style.animationDelay = (i * 0.08).toFixed(2) + "s";
+          heart.style.setProperty("--r", (Math.random() * 30 - 15).toFixed(0) + "deg");
+          heart.style.fontSize = (10 + Math.random() * 5).toFixed(0) + "px";
+          pillspot.appendChild(heart);
+          window.setTimeout(() => heart.remove(), 1500);
+        }
+      }
+
+      function spawnOneUp() {
+        const oneup = document.createElement("span");
+        oneup.className = "oneup";
+        oneup.textContent = "1-UP!";
+        pillspot.appendChild(oneup);
+        window.setTimeout(() => oneup.remove(), 1600);
+      }
+
+      function spawnKonamiConfetti() {
+        const colors = ["#ff5d8f", "#ffd166", "#34d399", "#5db3e8", "#b794f6", "#ffffff"];
+        const box = document.createElement("span");
+        box.className = "kfetti";
+        const pieces = 18;
+        for (let i = 0; i < pieces; i += 1) {
+          const piece = document.createElement("i");
+          piece.style.left = Math.round((i / (pieces - 1)) * 100) + "%";
+          piece.style.background = colors[i % colors.length];
+          piece.style.setProperty("--d", (Math.random() * 0.35).toFixed(2) + "s");
+          piece.style.setProperty("--fall", (52 + Math.random() * 34).toFixed(0) + "px");
+          piece.style.setProperty("--spin", (260 + Math.random() * 360).toFixed(0) + "deg");
+          box.appendChild(piece);
+        }
+        pillspot.appendChild(box);
+        window.setTimeout(() => box.remove(), 2100);
+      }
+
+      function spawnStrawberry() {
+        const berry = document.createElement("span");
+        berry.className = "berry-drop";
+        berry.innerHTML = '<i class="berry-fruit"></i><i class="berry-leaf"></i>';
+        pillspot.appendChild(berry);
+        window.setTimeout(() => berry.remove(), 1600);
+      }
+
+      function spawnSummitFlag() {
+        const flag = document.createElement("span");
+        flag.className = "summit-flag";
+        flag.innerHTML = '<i class="summit-pole"></i><i class="summit-cloth"></i><i class="summit-star"></i>';
+        pillspot.appendChild(flag);
+        window.setTimeout(() => flag.remove(), 1900);
+      }
+
+      function spawnWakeMark() {
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        mark.textContent = "!";
+        pillspot.appendChild(mark);
+        window.setTimeout(() => mark.remove(), 900);
+      }
+
+      function clearEffectTimers() {
+        window.clearTimeout(petTimer);
+        window.clearTimeout(konamiTimer);
+        window.clearTimeout(berryTimer);
+        window.clearTimeout(summitTimer);
+        window.clearTimeout(hurtTimer);
+        window.clearTimeout(wakeTimerA);
+        window.clearTimeout(wakeTimerB);
+        window.clearTimeout(effectTimer);
+        window.clearTimeout(damageFlashTimer);
+        window.clearTimeout(criticalFlashTimer);
+      }
+
+      function clearEffectClasses() {
+        root.classList.remove(
+          "petted",
+          "pet-soft",
+          "pet-tired",
+          "pet-critical",
+          "berry",
+          "konami",
+          "summit",
+          "startle",
+          "hp-drop",
+          "critical-enter"
+        );
+      }
+
+      function applyBaseClasses() {
+        root.classList.remove("idle", "idle-nap", "idle-kick", "idle-peek", "celebrate", "streaming", "attentive");
+        const preset = effectivePreset();
+        (preset.classes || []).forEach((name) => root.classList.add(name));
+
+        if (state.streaming && effectiveModeId() === "patrol" && state.health !== "critical") {
+          root.classList.add("streaming");
+        }
+        if (shouldTrack()) {
+          root.classList.add("attentive");
+        }
+      }
+
+      function updateButtons() {
+        healthButtons.forEach((button, key) => button.classList.toggle("active", key === state.health));
+        modeButtons.forEach((button, key) => button.classList.toggle("active", key === state.mode));
+        galleryButtons.forEach((button, key) => button.classList.toggle("active", key === state.mode));
+        togglePanel.checked = state.panelOpen;
+        toggleStreaming.checked = state.streaming;
+        toggleTracking.checked = state.tracking;
+        toggleTheme.checked = state.theme === "light";
+        suiteButton.textContent = state.suiteRunning ? "Cancel suite" : "Run full suite";
+      }
+
+      function render() {
+        root.dataset.state = state.health;
+        root.dataset.theme = state.theme;
+        panel.hidden = !state.panelOpen;
+        pill.setAttribute("aria-expanded", String(state.panelOpen));
+
+        applyBaseClasses();
+        setSprite(effectivePose());
+        syncRunWidth();
+
+        avatar.innerHTML = Memoko.faceSvg(state.health, 24);
+        badge.textContent = HEALTH_PRESETS[state.health].label;
+        pct.textContent = String(state.hp);
+        vHp.textContent = String(state.hp);
+
+        const usage = Math.max(0, 100 - state.hp);
+        const tokens = Math.round((usage / 100) * 190000);
+        vPct.textContent = "~" + usage + "%";
+        vTokens.textContent = "~" + fmtTok(tokens) + " / 190k";
+        vMsgs.textContent = String(6 + Math.round(usage / 4));
+        vAge.textContent = state.panelOpen ? "test harness" : "preview only";
+        setSegments(pillSegs, state.hp);
+        setSegments(panelSegs, state.hp);
+
+        const modeId = effectiveModeId();
+        const modeLabel = MODE_PRESETS[modeId].label;
+        const modeLower = modeLabel.toLowerCase();
+        stageTitle.textContent = modeId === "patrol"
+          ? HEALTH_PRESETS[state.health].label + " patrol"
+          : HEALTH_PRESETS[state.health].label + " " + modeLower;
+        stageCopy.textContent = MODE_PRESETS[modeId].summary;
+        themeStatus.textContent = state.theme === "light" ? "Light theme" : "Dark theme";
+        suiteStatus.textContent = state.statusLabel;
+        statusEl.textContent = modeId === "patrol" ? Memoko.STATUS[state.health] : MODE_PRESETS[modeId].summary;
+        readoutPose.textContent = effectivePose();
+        readoutHealth.textContent = HEALTH_PRESETS[state.health].label + " · HP " + state.hp;
+        readoutClasses.textContent = activeClassList();
+        updateButtons();
+      }
+
+      function cancelSuite() {
+        suiteToken += 1;
+        state.suiteRunning = false;
+        state.statusLabel = "Manual mode";
+        render();
+      }
+
+      function applyHealthPreset(key) {
+        const preset = HEALTH_PRESETS[key];
+        const previousHealth = state.health;
+        state.health = key;
+        state.hp = preset.hp;
+        if (previousHealth !== "critical" && key === "critical") {
+          criticalFlashTimer = flashRootClass("critical-enter", 1200);
+        }
+        render();
+      }
+
+      function setHealthByHp(nextHp) {
+        const clamped = Math.max(0, Math.min(100, Math.round(nextHp)));
+        const previousHp = state.hp;
+        const previousHealth = state.health;
+        state.hp = clamped;
+        state.health = stateForHp(clamped);
+        if (clamped < previousHp - 1) {
+          damageFlashTimer = flashRootClass("hp-drop", 820);
+          if (state.health !== "critical") runHurt();
+        }
+        if (previousHealth !== "critical" && state.health === "critical") {
+          criticalFlashTimer = flashRootClass("critical-enter", 1200);
+        }
+        render();
+      }
+
+      function setMode(mode) {
+        state.overlayMode = null;
+        state.mode = mode;
+        render();
+      }
+
+      function runPet() {
+        const reaction = PET_REACTIONS[state.health];
+        root.classList.remove("petted", "pet-soft", "pet-tired", "pet-critical");
+        void root.offsetWidth;
+        root.classList.add("petted");
+        if (reaction.className) root.classList.add(reaction.className);
+        spawnHearts(reaction.hearts);
+        showBubble(pick(reaction.lines), 2800);
+        petTimer = window.setTimeout(() => {
+          root.classList.remove("petted", "pet-soft", "pet-tired", "pet-critical");
+        }, reaction.durationMs);
+      }
+
+      function runHurt() {
+        const restoreMode = state.mode;
+        const restoreOverlayMode = state.overlayMode;
+        window.clearTimeout(hurtTimer);
+        state.overlayMode = null;
+        state.mode = "hurt";
+        render();
+        hurtTimer = window.setTimeout(() => {
+          state.mode = restoreMode;
+          state.overlayMode = restoreOverlayMode;
+          render();
+        }, 480);
+      }
+
+      function runBerry() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        root.classList.remove("berry");
+        void root.offsetWidth;
+        root.classList.add("berry");
+        spawnStrawberry();
+        if (state.health !== "critical") spawnHearts(state.health === "heavy" ? 1 : 2);
+        showBubble(pick([
+          "strawberry break! \u{1F353}",
+          "tiny snack buff.",
+          "foraging success.",
+          "berry nice."
+        ]), 3000);
+        berryTimer = window.setTimeout(() => {
+          root.classList.remove("berry");
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1450);
+      }
+
+      function runKonami() {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        root.classList.remove("konami");
+        void root.offsetWidth;
+        root.classList.add("konami");
+        spawnOneUp();
+        spawnKonamiConfetti();
+        showBubble("1-UP! ▲▲▼▼◀▶◀▶ B A — you found me.", 3200);
+        konamiTimer = window.setTimeout(() => {
+          root.classList.remove("konami");
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1700);
+      }
+
+      function runSummit() {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        root.classList.remove("summit");
+        void root.offsetWidth;
+        root.classList.add("summit");
+        spawnSummitFlag();
+        showBubble(pick([
+          "summit clear! \u{1F3C1}",
+          "huge save. nice climb.",
+          "that handoff was a mountain.",
+          "peak efficiency reached."
+        ]), 3200);
+        summitTimer = window.setTimeout(() => {
+          root.classList.remove("summit");
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1800);
+      }
+
+      function runWakeFromNap() {
+        state.mode = "nap";
+        state.overlayMode = "watch";
+        render();
+        root.classList.remove("startle");
+        void root.offsetWidth;
+        root.classList.add("startle");
+        spawnWakeMark();
+        showBubble("!", 900);
+        wakeTimerA = window.setTimeout(() => {
+          root.classList.remove("startle");
+          state.overlayMode = "wave";
+          render();
+          showBubble("Welcome back!", 1800);
+        }, 420);
+        wakeTimerB = window.setTimeout(() => {
+          state.overlayMode = null;
+          state.mode = "patrol";
+          render();
+        }, 1650);
+      }
+
+      function stopTransientState() {
+        clearEffectTimers();
+        clearEffectClasses();
+        state.overlayMode = null;
+      }
+
+      function onManualChange(fn) {
+        cancelSuite();
+        stopTransientState();
+        fn();
+      }
+
+      function makeButton(label, sublabel) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "chip";
+        button.innerHTML = "<strong>" + label + "</strong><span>" + sublabel + "</span>";
+        return button;
+      }
+
+      function buildControls() {
+        Object.entries(HEALTH_PRESETS).forEach(([key, preset]) => {
+          const button = makeButton(preset.label, preset.blurb);
+          button.addEventListener("click", () => {
+            onManualChange(() => applyHealthPreset(key));
+          });
+          healthControls.appendChild(button);
+          healthButtons.set(key, button);
+        });
+
+        MODE_ORDER.forEach((key) => {
+          const preset = MODE_PRESETS[key];
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "mode-chip";
+          button.innerHTML = "<strong>" + preset.label + "</strong><span>" + preset.summary + "</span>";
+          button.addEventListener("click", () => {
+            onManualChange(() => setMode(key));
+          });
+          modeControls.appendChild(button);
+          modeButtons.set(key, button);
+        });
+      }
+
+      function galleryThumbPose(modeKey) {
+        if (modeKey === "patrol") return "fresh";
+        return typeof MODE_PRESETS[modeKey].pose === "function" ? MODE_PRESETS[modeKey].pose("fresh") : MODE_PRESETS[modeKey].pose;
+      }
+
+      function buildGallery() {
+        MODE_ORDER.forEach((key) => {
+          const preset = MODE_PRESETS[key];
+          const card = document.createElement("button");
+          card.type = "button";
+          card.className = "pose-card";
+          card.innerHTML =
+            '<span class="thumb">' + Memoko.spriteSvg(galleryThumbPose(key), 28) + "</span>" +
+            "<strong>" + preset.label + "</strong>" +
+            '<span>' + (key === "patrol" ? "Health-driven run" : "Manual preview") + "</span>";
+          card.addEventListener("click", () => {
+            onManualChange(() => setMode(key));
+          });
+          poseGallery.appendChild(card);
+          galleryButtons.set(key, card);
+        });
+      }
+
+      function bindEvents() {
+        pill.addEventListener("click", () => {
+          onManualChange(() => {
+            state.panelOpen = !state.panelOpen;
+            render();
+          });
+        });
+
+        document.querySelectorAll("[data-effect]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const effect = button.getAttribute("data-effect");
+            onManualChange(() => {
+              render();
+              if (effect === "pet") runPet();
+              if (effect === "berry") runBerry();
+              if (effect === "konami") runKonami();
+              if (effect === "summit") runSummit();
+              if (effect === "wake") runWakeFromNap();
+              if (effect === "damage") setHealthByHp(state.hp - 12);
+            });
+          });
+        });
+
+        togglePanel.addEventListener("change", () => {
+          onManualChange(() => {
+            state.panelOpen = togglePanel.checked;
+            render();
+          });
+        });
+
+        toggleStreaming.addEventListener("change", () => {
+          onManualChange(() => {
+            state.streaming = toggleStreaming.checked;
+            render();
+          });
+        });
+
+        toggleTracking.addEventListener("change", () => {
+          onManualChange(() => {
+            state.tracking = toggleTracking.checked;
+            render();
+          });
+        });
+
+        toggleTheme.addEventListener("change", () => {
+          onManualChange(() => {
+            state.theme = toggleTheme.checked ? "light" : "dark";
+            render();
+          });
+        });
+
+        suiteButton.addEventListener("click", () => {
+          if (state.suiteRunning) {
+            cancelSuite();
+            stopTransientState();
+            return;
+          }
+          runSuite();
+        });
+
+        preview.addEventListener("pointermove", (event) => {
+          cursor.x = event.clientX;
+          cursor.y = event.clientY;
+          driveAttention();
+        });
+
+        preview.addEventListener("pointerleave", () => {
+          cursor.x = -9999;
+          cursor.y = -9999;
+          if (shouldTrack()) driveAttention();
+        });
+
+        window.addEventListener("resize", syncRunWidth);
+      }
+
+      function wait(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+
+      async function runSuite() {
+        stopTransientState();
+        state.suiteRunning = true;
+        state.statusLabel = "Suite running";
+        const token = ++suiteToken;
+        render();
+
+        for (const step of SUITE_STEPS) {
+          if (token !== suiteToken) return false;
+          stopTransientState();
+
+          if (step.health) applyHealthPreset(step.health);
+          if (step.mode) setMode(step.mode);
+          if (step.action === "pet") runPet();
+          if (step.action === "berry") runBerry();
+          if (step.action === "konami") runKonami();
+          if (step.action === "summit") runSummit();
+          if (step.action === "wake") runWakeFromNap();
+
+          state.statusLabel = "Testing: " + step.label;
+          render();
+          await wait(step.wait);
+        }
+
+        if (token !== suiteToken) return false;
+        state.suiteRunning = false;
+        state.statusLabel = "Suite complete";
+        showBubble("Full animation sweep complete.", 2600);
+        render();
+        return true;
+      }
+
+      cheerburst.innerHTML = Array.from({ length: 14 }, (_, index) => {
+        const delay = (index * 0.035).toFixed(2);
+        const angle = (-34 + index * 6).toFixed(0);
+        return '<i style="--d:' + delay + 's;--a:' + angle + 'deg"></i>';
+      }).join("");
+
+      buildControls();
+      buildGallery();
+      bindEvents();
+      render();
+      syncRunWidth();
+
+      window.MemokoHarness = {
+        getState() {
+          return {
+            hp: state.hp,
+            health: state.health,
+            mode: state.mode,
+            overlayMode: state.overlayMode,
+            effectiveMode: effectiveModeId(),
+            pose: effectivePose(),
+            classes: Array.from(root.classList)
+          };
+        },
+        setHealth(key) {
+          onManualChange(() => applyHealthPreset(key));
+        },
+        setMode(key) {
+          onManualChange(() => setMode(key));
+        },
+        setStreaming(value) {
+          onManualChange(() => {
+            state.streaming = !!value;
+            render();
+          });
+        },
+        setTracking(value) {
+          onManualChange(() => {
+            state.tracking = !!value;
+            render();
+          });
+        },
+        setTheme(value) {
+          onManualChange(() => {
+            state.theme = value === "light" ? "light" : "dark";
+            render();
+          });
+        },
+        setPanel(value) {
+          onManualChange(() => {
+            state.panelOpen = !!value;
+            render();
+          });
+        },
+        pet() {
+          onManualChange(() => runPet());
+        },
+        berry() {
+          onManualChange(() => runBerry());
+        },
+        konami() {
+          onManualChange(() => runKonami());
+        },
+        summit() {
+          onManualChange(() => runSummit());
+        },
+        wake() {
+          onManualChange(() => runWakeFromNap());
+        },
+        damage(amount) {
+          onManualChange(() => setHealthByHp(state.hp - Math.abs(Number(amount) || 12)));
+        },
+        async runSuite() {
+          return runSuite();
+        }
+      };
+    })();
+  </script>
+</body>
+</html>

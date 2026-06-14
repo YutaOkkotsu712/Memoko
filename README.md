@@ -144,6 +144,72 @@ lower bound.
 - On pages or DOM shapes it doesn't recognize, Memoko does nothing and
   logs nothing.
 
+## Animation and easter egg trigger map
+
+The animation system is split three ways:
+
+- `src/content/ui/pill.ts` — runtime state machine, event listeners, and
+  one-shot effect triggers.
+- `src/content/ui/avatar.ts` — the actual sprite poses (`fresh`,
+  `healthy`, `heavy`, `critical`, `watch`, `cheer`, `hurt`, `sit`,
+  `laptop`, `book`, `doodle`, `yawn`, `nap`, `wave`).
+- `src/content/ui/pill.css` — motion classes and keyframes for patrol,
+  idle, reactions, damage flashes, confetti, berry, summit, wake-up,
+  and reduced-motion fallbacks.
+
+The local playground in `patrol-harness.html` mirrors these states so
+you can force each pose/effect without waiting for the live extension
+logic.
+
+### Pose precedence
+
+`syncPose()` in `src/content/ui/pill.ts` resolves the live sprite in this
+order:
+
+`konami / celebrate -> berry -> hurt -> startle -> wave -> idle stage -> attentive watch -> streaming watch -> health state`
+
+That means a one-shot effect like Konami or wake-up will temporarily win
+over normal patrol/streaming state until its timer clears.
+
+### Trigger map
+
+| Trigger | Result | Code path |
+| --- | --- | --- |
+| Health state update from the monitor | Patrol pose switches between `fresh`, `healthy`, `heavy`, or `critical` | `update(stats_)` stores `lastState`, then `syncPose()` falls back to the health pose |
+| Model is currently streaming | Memoko uses the `watch` pose unless she is idle or critical | `update(stats_)` stores `lastStreaming`; `syncPose()` picks `watch` when `lastStreaming` is true |
+| Pointer comes near the pill | Memoko pauses patrol and does live head/eye tracking | `onPointerMove()` -> `setAttentive(true)` when `canAttend()` and the pointer is inside the attention radius |
+| No activity for `IDLE_DELAY_MS` (`120_000`) | Idle sequence begins | `scheduleIdle()` -> `goIdle()` -> `enterStage('sit')` |
+| Idle sequence continues | She cycles through seated idles, then yawns, then naps | `nextIdle()` randomly picks from `IDLE_ACTIVITIES` (`laptop`, `book`, `doodle`, `kick`, `peek`); `kick` and `peek` reuse the `sit` pose plus CSS classes; then `enterStage('yawn')` -> `enterStage('nap')` |
+| Any user activity while idle | Idle is cleared and she wakes up | `noteActivity()` -> `wake(false)` |
+| Waking specifically from nap | Startle beat (`watch` + `!`) then a wave | `wake(false)` detects `idleStage === 'nap'`; `playWave(true)` sets `startling`, then `beginWave(true)` |
+| Waking from a non-nap idle | Friendly wave | `wake(false)` -> `playWave(false)` -> `beginWave(false)` |
+| Clicking the sprite once | Pet reaction based on current health, with hearts/bubble | `sprite.addEventListener('click', ...)` -> `pet()` |
+| Clicking the sprite rapidly 4 times within `PET_COMBO_WINDOW_MS` (`1_600`) | Berry snack easter egg | Same click handler increments `petCombo`; when `petCombo >= BERRY_PET_COMBO` (`4`), it calls `fireBerrySnack()` |
+| Entering the Konami sequence `↑ ↑ ↓ ↓ ← → ← → B A` | 1-UP + confetti dance | `window.addEventListener('keydown', onKonamiKey)`; a full match calls `fireKonami()` |
+| Handoff transitions into `done` | Cheer / celebration burst | `updateHandoff()` detects `view.phase === 'done'` and calls `celebrate()` |
+| Handoff saves at least `SUMMIT_SAVED_TOKENS` (`50_000`) | Summit clear flag/glow easter egg | Inside the same `updateHandoff()` transition, `saved >= SUMMIT_SAVED_TOKENS` calls `fireSummitClear()` |
+| HP drops by more than 1 point | Hurt flinch pose + damage flash + floating `-N HP` | `update(stats_)` -> `flashClass('hp-drop', ...)` + `spawnDamage(...)` + `triggerHurt()` |
+| Entering `critical` from another state | Critical-entry flash | `update(stats_)` -> `flashClass('critical-enter', ...)` |
+| First show after injection | Entrance animation | `show()` adds the one-time intro classes/timers before normal idle scheduling resumes |
+
+### Tuning knobs
+
+The easiest numbers to tweak live near the top of
+`src/content/ui/pill.ts`:
+
+- `IDLE_DELAY_MS` — how long before the idle routine starts.
+- `IDLE_DWELL` — how long each idle stage holds.
+- `BERRY_PET_COMBO` and `PET_COMBO_WINDOW_MS` — how hard the berry
+  combo is to trigger.
+- `SUMMIT_SAVED_TOKENS` — minimum token savings for the summit-clear
+  effect.
+- `ATTEND_ZONE_IN` / `ATTEND_ZONE_OUT` — how close the pointer must get
+  before Memoko notices you.
+
+All motion has reduced-motion fallbacks in `src/content/ui/pill.css`, so
+if you add a new effect, wire it into the `prefers-reduced-motion`
+section too.
+
 ## Dev
 
 ```sh

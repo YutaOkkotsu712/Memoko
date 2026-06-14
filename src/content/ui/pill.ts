@@ -102,15 +102,15 @@ function formatAge(ms: number): string {
 // ---- idle behaviors --------------------------------------------------------
 /** Idle poses, in the order she drifts through. 'sit' opens; activities are
  *  shuffled; 'yawn' then 'nap' close it out. */
-type IdleStage = 'sit' | 'laptop' | 'doodle' | 'kick' | 'peek' | 'yawn' | 'nap';
-const IDLE_ACTIVITIES: IdleStage[] = ['laptop', 'doodle', 'kick', 'peek'];
+type IdleStage = 'sit' | 'laptop' | 'book' | 'doodle' | 'kick' | 'peek' | 'yawn' | 'nap';
+const IDLE_ACTIVITIES: IdleStage[] = ['laptop', 'book', 'doodle', 'kick', 'peek'];
 const IDLE_SEATED: Record<IdleStage, true> = {
-  sit: true, laptop: true, doodle: true, kick: true, peek: true, yawn: true, nap: true,
+  sit: true, laptop: true, book: true, doodle: true, kick: true, peek: true, yawn: true, nap: true,
 };
 /** Inactivity before she settles in. Tamagotchi cadence — ~2 minutes. */
 const IDLE_DELAY_MS = 120_000;
 const IDLE_DWELL: Record<IdleStage, number> = {
-  sit: 9_000, laptop: 16_000, doodle: 13_000, kick: 8_000, peek: 7_000, yawn: 1_700, nap: 0,
+  sit: 9_000, laptop: 16_000, book: 14_000, doodle: 13_000, kick: 8_000, peek: 7_000, yawn: 1_700, nap: 0,
 };
 
 // ---- Konami easter egg -----------------------------------------------------
@@ -119,6 +119,10 @@ const KONAMI: string[] = [
   'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a',
 ];
 const KONAMI_CONFETTI = ['#ff5d8f', '#ffd166', '#34d399', '#5db3e8', '#b794f6', '#ffffff'];
+const BERRY_PET_COMBO = 4;
+const PET_COMBO_WINDOW_MS = 1_600;
+const HURT_POSE_MS = 480;
+const SUMMIT_SAVED_TOKENS = 50_000;
 
 // ---- cursor attention ------------------------------------------------------
 const ATTEND_ZONE_IN = 235;
@@ -180,6 +184,9 @@ function fmtTok(n: number): string {
 }
 
 const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
+
+const isPatrolPose = (pose: MemokoPose | null): pose is HealthState =>
+  pose === 'fresh' || pose === 'healthy' || pose === 'heavy';
 
 export function createPill(opts: PillOptions): PillUI {
   const persist: PillPersist = { ...opts.initial };
@@ -293,6 +300,49 @@ export function createPill(opts: PillOptions): PillUI {
   const sSaved = $('.s-saved');
   const sHero = $('.s-hero');
 
+  let spritePose: MemokoPose | null = null;
+  let lastPatrolSpriteWidth = 0;
+
+  const renderedSpriteWidth = () => {
+    const svg = flip.querySelector<SVGSVGElement>('svg.sp');
+    return (
+      svg?.getBoundingClientRect().width ||
+      flip.getBoundingClientRect().width ||
+      sprite.getBoundingClientRect().width ||
+      0
+    );
+  };
+
+  const syncRunWidth = () => {
+    const pillWidth = pill.getBoundingClientRect().width || pill.offsetWidth || pillspot.offsetWidth;
+    if (pillWidth <= 0) return;
+
+    const measuredSpriteWidth = renderedSpriteWidth();
+    // Cursor-attention and other paused poses should not rewrite the patrol
+    // distance from their own footprint; keep the last standing patrol width
+    // so resuming continues from the same edge-to-edge travel budget.
+    if (isPatrolPose(spritePose) && measuredSpriteWidth > 0) {
+      lastPatrolSpriteWidth = measuredSpriteWidth;
+    }
+    const spriteWidth =
+      lastPatrolSpriteWidth > 0 ? lastPatrolSpriteWidth : measuredSpriteWidth || SPRITE_SIZE;
+    const leftInset = Number.parseFloat(getComputedStyle(sprite).left || '0') || 0;
+    const containedRunWidth = pillWidth - spriteWidth - leftInset * 2;
+    if (containedRunWidth <= 0) return;
+
+    sprite.style.setProperty('--run-w', `${containedRunWidth.toFixed(1)}px`);
+    sprite.style.setProperty('--run-w-fresh', `${containedRunWidth.toFixed(1)}px`);
+    sprite.style.setProperty('--run-w-healthy', `${containedRunWidth.toFixed(1)}px`);
+    sprite.style.setProperty('--run-w-heavy', `${containedRunWidth.toFixed(1)}px`);
+  };
+
+  const runResizeObserver =
+    typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(syncRunWidth);
+  runResizeObserver?.observe(pill);
+  runResizeObserver?.observe(sprite);
+
   // The bubble rides inside .trk so the patrol transform carries it with her.
   trk.appendChild(speech);
 
@@ -321,7 +371,6 @@ export function createPill(opts: PillOptions): PillUI {
   });
 
   // --- avatar pose handling ------------------------------------------------
-  let spritePose: MemokoPose | null = null;
   let faceState: HealthState | null = null;
   let lastState: HealthState = 'fresh';
   let lastStreaming = false;
@@ -335,15 +384,40 @@ export function createPill(opts: PillOptions): PillUI {
   let attentive = false;
   let petting = false;
   let konamiActive = false;
+  let berryActive = false;
+  let hurting = false;
+  let resumeFlipTime: CSSNumberish | null = null;
+  let resumeFlipRaf = 0;
   let mkTrack: HTMLElement | null = null;
   let mkEyes: HTMLElement | null = null;
   const cursor = { x: -9999, y: -9999 };
+
+  const patrolFlipAnimation = (): CSSAnimation | null =>
+    flip
+      .getAnimations()
+      .find((candidate): candidate is CSSAnimation =>
+        candidate instanceof CSSAnimation &&
+        candidate.animationName.startsWith('memoko-flip-')
+      ) ?? null;
+
+  const restoreFlipPhase = () => {
+    if (resumeFlipTime == null || !isPatrolPose(spritePose)) return;
+    const anim = patrolFlipAnimation();
+    if (!anim) {
+      resumeFlipRaf = window.requestAnimationFrame(restoreFlipPhase);
+      return;
+    }
+    anim.currentTime = resumeFlipTime;
+    resumeFlipTime = null;
+    resumeFlipRaf = 0;
+  };
 
   const setSprite = (pose: MemokoPose) => {
     if (pose === spritePose) return;
     spritePose = pose;
     // Wrapped in .mk-swap so each swap plays a soft settle, not a hard cut.
     flip.innerHTML = `<span class="mk-swap">${spriteSvg(pose, SPRITE_SIZE)}</span>`;
+    syncRunWidth();
   };
 
   const setFace = (state: HealthState) => {
@@ -352,14 +426,19 @@ export function createPill(opts: PillOptions): PillUI {
     avatar.innerHTML = faceSvg(state, 24);
   };
 
-  /** Pose precedence: konami/celebration > startle > wave > idle > attentive
-   *  > streaming-watch > health state. */
+  /** Pose precedence: konami/celebration > berry > hurt > startle > wave >
+   *  idle > attentive > streaming-watch > health state. */
   const syncPose = () => {
     let pose: MemokoPose;
     if (konamiActive || celebrating) pose = 'cheer';
+    else if (berryActive) pose = 'wave';
+    else if (hurting) pose = 'hurt';
     else if (startling) pose = 'watch';
     else if (waving) pose = 'wave';
-    else if (idleStage) pose = (idleStage === 'kick' || idleStage === 'peek') ? 'sit' : idleStage;
+    else if (idleStage) {
+      pose =
+        idleStage === 'kick' || idleStage === 'peek' ? 'sit' : idleStage;
+    }
     else if (attentive) pose = 'watch';
     else if (lastStreaming && lastState !== 'critical') pose = 'watch';
     else pose = lastState;
@@ -533,6 +612,19 @@ export function createPill(opts: PillOptions): PillUI {
     window.setTimeout(() => d.remove(), 1600); // safety if animations are off
   };
 
+  let hurtTimer = 0;
+
+  const triggerHurt = () => {
+    setAttentive(false);
+    window.clearTimeout(hurtTimer);
+    hurting = true;
+    syncPose();
+    hurtTimer = window.setTimeout(() => {
+      hurting = false;
+      syncPose();
+    }, HURT_POSE_MS);
+  };
+
   // =====================================================================
   // IDLE STATE MACHINE — sit → shuffled activities → yawn → nap
   // =====================================================================
@@ -562,6 +654,7 @@ export function createPill(opts: PillOptions): PillUI {
     if (Math.random() < 0.55) {
       if (stage === 'kick') showBubble('🎵 dum de dum…');
       else if (stage === 'peek') showBubble('still there? 👀');
+      else if (stage === 'book') showBubble('one more chapter 📖');
       else if (stage === 'doodle') showBubble('just doodling ✏️');
     }
     window.clearTimeout(stageTimer);
@@ -661,7 +754,7 @@ export function createPill(opts: PillOptions): PillUI {
   // =====================================================================
   const canAttend = () =>
     shown && !idleStage && !waving && !startling && !celebrating &&
-    !konamiActive && !petting && lastState !== 'critical';
+    !konamiActive && !berryActive && !hurting && !petting && lastState !== 'critical';
 
   const attTarget = () => {
     const r = host.getBoundingClientRect();
@@ -684,6 +777,8 @@ export function createPill(opts: PillOptions): PillUI {
 
   function setAttentive(on: boolean): void {
     if (on === attentive) return;
+    window.cancelAnimationFrame(resumeFlipRaf);
+    if (on) resumeFlipTime = patrolFlipAnimation()?.currentTime ?? null;
     attentive = on;
     root.classList.toggle('attentive', on);
     syncPose();
@@ -695,6 +790,7 @@ export function createPill(opts: PillOptions): PillUI {
       if (mkTrack) mkTrack.style.transform = '';
       mkTrack = null;
       mkEyes = null;
+      restoreFlipPhase();
     }
   }
 
@@ -717,6 +813,10 @@ export function createPill(opts: PillOptions): PillUI {
   // PET — click the sprite for a state-aware response
   // =====================================================================
   let petTimer = 0;
+  let petComboTimer = 0;
+  let petCombo = 0;
+  let berryTimer = 0;
+  let summitTimer = 0;
 
   type PetClass = 'pet-bright' | 'pet-soft' | 'pet-tired' | 'pet-critical';
 
@@ -772,6 +872,67 @@ export function createPill(opts: PillOptions): PillUI {
     root.classList.remove('petted', ...PET_CLASSES);
   };
 
+  const spawnStrawberry = () => {
+    if (reducedMotion()) return;
+    const berry = document.createElement('span');
+    berry.className = 'berry-drop';
+    berry.innerHTML = '<i class="berry-fruit"></i><i class="berry-leaf"></i>';
+    pillspot.appendChild(berry);
+    window.setTimeout(() => berry.remove(), 1600);
+  };
+
+  const spawnSummitFlag = () => {
+    if (reducedMotion()) return;
+    const flag = document.createElement('span');
+    flag.className = 'summit-flag';
+    flag.innerHTML = '<i class="summit-pole"></i><i class="summit-cloth"></i><i class="summit-star"></i>';
+    pillspot.appendChild(flag);
+    window.setTimeout(() => flag.remove(), 1900);
+  };
+
+  const fireBerrySnack = () => {
+    clearIdleTimers();
+    idleStage = null;
+    petting = false;
+    clearPetClasses();
+    setAttentive(false);
+    berryActive = true;
+    root.classList.remove('berry');
+    void root.offsetWidth;
+    root.classList.add('berry');
+    syncPose();
+    spawnStrawberry();
+    if (lastState !== 'critical') spawnHearts(lastState === 'heavy' ? 1 : 2);
+    showBubble(pick([
+      'strawberry break! 🍓',
+      'tiny snack buff.',
+      'foraging success.',
+      'berry nice.',
+    ]));
+    window.clearTimeout(berryTimer);
+    berryTimer = window.setTimeout(() => {
+      berryActive = false;
+      root.classList.remove('berry');
+      syncPose();
+      scheduleIdle();
+    }, 1450);
+  };
+
+  const fireSummitClear = () => {
+    root.classList.remove('summit');
+    void root.offsetWidth;
+    root.classList.add('summit');
+    spawnSummitFlag();
+    showBubble(pick([
+      'summit clear! 🏁',
+      'huge save. nice climb.',
+      'that handoff was a mountain.',
+      'peak efficiency reached.',
+    ]));
+    window.clearTimeout(summitTimer);
+    summitTimer = window.setTimeout(() => root.classList.remove('summit'), 1900);
+  };
+
   const pet = () => {
     const reaction = PET_REACTIONS[lastState];
     if (idleStage) { clearIdleTimers(); idleStage = null; }
@@ -794,6 +955,14 @@ export function createPill(opts: PillOptions): PillUI {
   sprite.style.pointerEvents = 'auto';
   sprite.addEventListener('click', (e) => {
     e.stopPropagation();
+    petCombo += 1;
+    window.clearTimeout(petComboTimer);
+    petComboTimer = window.setTimeout(() => { petCombo = 0; }, PET_COMBO_WINDOW_MS);
+    if (petCombo >= BERRY_PET_COMBO) {
+      petCombo = 0;
+      fireBerrySnack();
+      return;
+    }
     pet();
   });
 
@@ -1022,6 +1191,7 @@ export function createPill(opts: PillOptions): PillUI {
       if (!celebrating && lastHp !== null && hp < lastHp - 1) {
         damageTimer = flashClass('hp-drop', damageTimer, 820);
         spawnDamage(lastHp - hp);
+        if (stats_.state !== 'critical') triggerHurt();
       }
       if (!celebrating && lastState !== 'critical' && stats_.state === 'critical') {
         criticalTimer = flashClass('critical-enter', criticalTimer, 1200);
@@ -1104,6 +1274,7 @@ export function createPill(opts: PillOptions): PillUI {
         stats.saved += saved;
         renderStats('saved');
         window.setTimeout(() => bumpStat(sHand), 60);
+        if (saved >= SUMMIT_SAVED_TOKENS) fireSummitClear();
       }
       // Skip re-render when nothing changed — innerHTML writes would
       // destroy in-flight button feedback like "Copied ✓".
@@ -1129,6 +1300,7 @@ export function createPill(opts: PillOptions): PillUI {
       host.style.display = '';
       shown = true;
       applyPosition();
+      syncRunWidth();
       scheduleIdle();
       // Entrance: capsule cracks open and Memoko pops out — first show only.
       if (!entered) {
@@ -1147,15 +1319,23 @@ export function createPill(opts: PillOptions): PillUI {
       window.clearTimeout(waveTimer);
       window.clearTimeout(startleTimer);
       window.clearTimeout(petTimer);
+      window.clearTimeout(hurtTimer);
+      window.clearTimeout(petComboTimer);
+      window.clearTimeout(berryTimer);
+      window.clearTimeout(summitTimer);
       idleStage = null;
       waving = false;
       startling = false;
       petting = false;
+      berryActive = false;
+      hurting = false;
       clearPetClasses();
+      root.classList.remove('berry', 'summit');
       setAttentive(false);
       syncPose();
     },
     destroy() {
+      runResizeObserver?.disconnect();
       window.removeEventListener('resize', applyPosition);
       window.removeEventListener('pointerdown', onActivity);
       window.removeEventListener('keydown', onActivity);
@@ -1172,8 +1352,14 @@ export function createPill(opts: PillOptions): PillUI {
       window.clearTimeout(waveTimer);
       window.clearTimeout(startleTimer);
       window.clearTimeout(petTimer);
+      window.clearTimeout(hurtTimer);
+      window.clearTimeout(petComboTimer);
+      window.clearTimeout(berryTimer);
+      window.clearTimeout(summitTimer);
       window.clearTimeout(konamiTimer);
       cancelAnimationFrame(hpRaf);
+      window.cancelAnimationFrame(resumeFlipRaf);
+      hurting = false;
       host.remove();
     },
   };

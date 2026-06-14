@@ -40,10 +40,12 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   budgets: { claude: 200_000, chatgpt: 128_000 },
   charsPerToken: PROSE_CHARS_PER_TOKEN,
-  thresholds: { healthy: 40, heavy: 70, critical: 90 },
+  // Adjusted-load cutoffs. These map to HP bands:
+  // Fresh 100-70, Healthy 70-40, Heavy 40-10, Critical below 10.
+  thresholds: { healthy: 30, heavy: 60, critical: 90 },
   sites: { claude: true, chatgpt: true },
   draftMinTokens: 10,
-  pasteAuditMinTokens: 1000,
+  pasteAuditMinTokens: 150,
   features: {
     handoff: true,
     draftMeter: true,
@@ -55,6 +57,8 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 const SETTINGS_KEY = 'settings';
+const LEGACY_DEFAULT_THRESHOLDS: Thresholds = { healthy: 40, heavy: 70, critical: 90 };
+const LEGACY_DEFAULT_PASTE_AUDIT_MIN_TOKENS = 1000;
 
 export function mergeSettings(raw: unknown): Settings {
   const merged = structuredClone(DEFAULT_SETTINGS);
@@ -79,6 +83,13 @@ export function mergeSettings(raw: unknown): Settings {
       const v = r.thresholds[key];
       if (typeof v === 'number' && v >= 0 && v <= 100) merged.thresholds[key] = v;
     }
+    if (
+      merged.thresholds.healthy === LEGACY_DEFAULT_THRESHOLDS.healthy &&
+      merged.thresholds.heavy === LEGACY_DEFAULT_THRESHOLDS.heavy &&
+      merged.thresholds.critical === LEGACY_DEFAULT_THRESHOLDS.critical
+    ) {
+      merged.thresholds = structuredClone(DEFAULT_SETTINGS.thresholds);
+    }
   }
   if (r.sites && typeof r.sites === 'object') {
     Object.assign(merged.sites, r.sites);
@@ -87,7 +98,11 @@ export function mergeSettings(raw: unknown): Settings {
     merged.draftMinTokens = r.draftMinTokens;
   }
   if (typeof r.pasteAuditMinTokens === 'number' && r.pasteAuditMinTokens > 0) {
-    merged.pasteAuditMinTokens = r.pasteAuditMinTokens;
+    // Migrate the old baked-in default without disturbing custom values.
+    merged.pasteAuditMinTokens =
+      r.pasteAuditMinTokens === LEGACY_DEFAULT_PASTE_AUDIT_MIN_TOKENS
+        ? DEFAULT_SETTINGS.pasteAuditMinTokens
+        : r.pasteAuditMinTokens;
   }
   if (r.features && typeof r.features === 'object') {
     for (const key of [

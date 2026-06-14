@@ -2,7 +2,7 @@
 //   node --experimental-strip-types scripts/test-health.mjs  (Node 22)
 import { effectiveLoadPct, healthState } from '../src/core/health.ts';
 
-const T = { healthy: 40, heavy: 70, critical: 90 };
+const T = { healthy: 30, heavy: 60, critical: 90 };
 const base = { usagePct: 50, messageCount: 20, dupTokens: 0, budget: 200_000 };
 
 const cases = [
@@ -33,8 +33,19 @@ const cases = [
   },
   {
     name: 'adjustments can change the state, not just the number',
-    input: { usagePct: 66, messageCount: 200, dupTokens: 0, budget: 200_000 },
-    expect: (v) => healthState(v, T) === 'heavy' && healthState(66, T) === 'healthy',
+    input: { usagePct: 56, messageCount: 200, dupTokens: 0, budget: 200_000 },
+    expect: (v) => healthState(v, T) === 'heavy' && healthState(56, T) === 'healthy',
+  },
+  {
+    name: 'default bands map to HP 70 / 40 / 10',
+    input: { usagePct: 0, messageCount: 20, dupTokens: 0, budget: 200_000 },
+    expect: () =>
+      healthState(29.9, T) === 'fresh' &&
+      healthState(30, T) === 'healthy' &&
+      healthState(59.9, T) === 'healthy' &&
+      healthState(60, T) === 'heavy' &&
+      healthState(89.9, T) === 'heavy' &&
+      healthState(90, T) === 'critical',
   },
 ];
 

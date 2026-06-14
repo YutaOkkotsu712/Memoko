@@ -19,8 +19,9 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Memoko palette — referenced by avatar.ts via var(--mk-*).
-     Dark values are the original art; light deepens each tone for contrast. */
+     Original rose/blue character colors, now applied to the pixel sprite. */
   --mk-hair: #e893a8;
+  --mk-hair-pale: #b69ca7;
   --mk-ink: #503a44;
   --mk-skin: #ffd9c4;
   --mk-skin-pale: #efdfd6;
@@ -34,6 +35,9 @@
   --mk-sweat: #8fd0f5;
   --mk-wisp: #aac8e4;
   --mk-spark: #ffcf6e;
+  --mk-book: #9f8de2;
+  --mk-paper: #f3ede2;
+  --mk-page-line: #d6bfa8;
 
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 12px;
@@ -55,6 +59,7 @@
   --track: rgba(0, 0, 0, 0.1);
 
   --mk-hair: #d8758e;
+  --mk-hair-pale: #a98f9a;
   --mk-ink: #463239;
   --mk-skin: #f7c9ad;
   --mk-skin-pale: #ddc9bd;
@@ -68,6 +73,9 @@
   --mk-sweat: #5fb3e8;
   --mk-wisp: #8fb0d2;
   --mk-spark: #e3a93e;
+  --mk-book: #8574cd;
+  --mk-paper: #f7f0e4;
+  --mk-page-line: #c7ab8e;
 }
 
 .root[data-state="fresh"]    { --hp: #34d399; }
@@ -225,7 +233,10 @@
   left: 8px;
   pointer-events: none;
   z-index: 2;
-  --run-w: 96px; /* spans the full pill (was 64px — she only covered half) */
+  --run-w: 96px; /* fallback; pill.ts measures the live edge-to-edge distance */
+  --run-w-fresh: var(--run-w);
+  --run-w-healthy: var(--run-w);
+  --run-w-heavy: var(--run-w);
 }
 
 .pop {
@@ -244,18 +255,17 @@
 .root[data-state="healthy"] .sprite { --trk-dur: 10s; }
 .root[data-state="heavy"]   .sprite { --trk-dur: 16s; }
 
-.root[data-state="fresh"] .trk,
-.root[data-state="healthy"] .trk,
-.root[data-state="heavy"] .trk {
-  animation: memoko-trk var(--trk-dur) linear infinite;
-}
+.root[data-state="fresh"] .trk { animation: memoko-trk-fresh var(--trk-dur) linear infinite; }
+.root[data-state="healthy"] .trk { animation: memoko-trk-healthy var(--trk-dur) linear infinite; }
+.root[data-state="heavy"] .trk { animation: memoko-trk-heavy var(--trk-dur) linear infinite; }
+
+.root[data-state="fresh"] .flip { animation: memoko-flip-fresh var(--trk-dur) ease-in-out infinite; }
+.root[data-state="healthy"] .flip { animation: memoko-flip-healthy var(--trk-dur) ease-in-out infinite; }
+.root[data-state="heavy"] .flip { animation: memoko-flip-heavy var(--trk-dur) ease-in-out infinite; }
 
 .root[data-state="fresh"] .flip,
 .root[data-state="healthy"] .flip,
-.root[data-state="heavy"] .flip {
-  animation: memoko-flip var(--trk-dur) step-end infinite;
-  transform-origin: 50% 50%;
-}
+.root[data-state="heavy"] .flip { transform-origin: 50% 50%; }
 
 /* Streaming: she stops mid-patrol to watch the reply come in. */
 .root.streaming .trk,
@@ -263,13 +273,37 @@
   animation-play-state: paused;
 }
 
-@keyframes memoko-trk {
+@keyframes memoko-trk-fresh {
   0% { transform: translateX(0); }
-  50% { transform: translateX(var(--run-w)); }
+  50% { transform: translateX(var(--run-w-fresh)); }
   100% { transform: translateX(0); }
 }
 
-@keyframes memoko-flip {
+@keyframes memoko-trk-healthy {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(var(--run-w-healthy)); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes memoko-trk-heavy {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(var(--run-w-heavy)); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes memoko-flip-fresh {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes memoko-flip-healthy {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes memoko-flip-heavy {
   0% { transform: scaleX(1); }
   50% { transform: scaleX(-1); }
   100% { transform: scaleX(1); }
@@ -313,13 +347,11 @@
 .sp-walk .sp-armA { animation: memoko-swing-walk 0.9s linear infinite; animation-delay: -0.45s; }
 .sp-walk .sp-armB { animation: memoko-swing-walk 0.9s linear infinite; }
 
-@keyframes memoko-look-around {
-  0%, 18%, 100% { transform: rotate(0deg) translateX(0); }
-  24%, 34% { transform: rotate(-7deg) translateX(-0.6px); }
-  42%, 52% { transform: rotate(5deg) translateX(0.4px); }
-  60%, 72% { transform: rotate(0deg) translateX(0); }
+@keyframes memoko-walk-focus {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.35px); }
 }
-.sp-walk .sp-headG { animation: memoko-look-around 7.2s ease-in-out infinite; }
+.sp-walk .sp-headG { animation: memoko-walk-focus 0.9s ease-in-out infinite; }
 
 @keyframes memoko-drag-step-a {
   0%, 100% { transform: rotate(-11deg) translateY(0); }
@@ -336,9 +368,9 @@
 .sp-trudge .sp-armA, .sp-trudge .sp-armB { transform: rotate(15deg); }
 
 @keyframes memoko-heavy-head {
-  0%, 100% { transform: rotate(9deg) translateY(0); }
-  48% { transform: rotate(12deg) translateY(1px); }
-  56% { transform: rotate(5deg) translateY(-0.6px); }
+  0%, 100% { transform: rotate(5deg) translateY(0); }
+  48% { transform: rotate(7deg) translateY(1px); }
+  56% { transform: rotate(3deg) translateY(-0.6px); }
 }
 .sp-trudge .sp-headG {
   animation: memoko-heavy-head 2.7s ease-in-out infinite;
@@ -1072,32 +1104,69 @@
 .root[data-state="fresh"] .trk,
 .root[data-state="healthy"] .trk,
 .root[data-state="heavy"] .trk {
-  animation-name: memoko-trk;
   animation-duration: var(--trk-dur);
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
+
+.root[data-state="fresh"] .trk { animation-name: memoko-trk-fresh; }
+.root[data-state="healthy"] .trk { animation-name: memoko-trk-healthy; }
+.root[data-state="heavy"] .trk { animation-name: memoko-trk-heavy; }
+
 .root[data-state="fresh"] .flip,
 .root[data-state="healthy"] .flip,
 .root[data-state="heavy"] .flip {
-  animation-name: memoko-flip;
   animation-duration: var(--trk-dur);
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
+
+.root[data-state="fresh"] .flip { animation-name: memoko-flip-fresh; }
+.root[data-state="healthy"] .flip { animation-name: memoko-flip-healthy; }
+.root[data-state="heavy"] .flip { animation-name: memoko-flip-heavy; }
+
 /* Pace with deceleration + a brief pause at each end (anticipation), and a
    2D squash-turn so she visibly pivots instead of snapping to a mirror. */
-@keyframes memoko-trk {
-  0%, 8%   { transform: translateX(0); }
-  50%, 58% { transform: translateX(var(--run-w)); }
-  100%     { transform: translateX(0); }
+@keyframes memoko-trk-fresh {
+  0%, 6%    { transform: translateX(0); }
+  50%, 54%  { transform: translateX(var(--run-w-fresh)); }
+  96%, 100% { transform: translateX(0); }
 }
-@keyframes memoko-flip {
-  0%, 2%    { transform: scaleX(-1); }
-  5%        { transform: scaleX(0.6); }
-  8%, 52%   { transform: scaleX(1); }
-  55%       { transform: scaleX(0.6); }
-  58%, 100% { transform: scaleX(-1); }
+
+@keyframes memoko-trk-healthy {
+  0%, 8%    { transform: translateX(0); }
+  50%, 58%  { transform: translateX(var(--run-w-healthy)); }
+  92%, 100% { transform: translateX(0); }
+}
+
+@keyframes memoko-trk-heavy {
+  0%, 12%   { transform: translateX(0); }
+  50%, 64%  { transform: translateX(var(--run-w-heavy)); }
+  88%, 100% { transform: translateX(0); }
+}
+
+@keyframes memoko-flip-fresh {
+  0%, 50%   { transform: scaleX(1); }
+  52%       { transform: scaleX(0.6); }
+  54%, 96%  { transform: scaleX(-1); }
+  98%       { transform: scaleX(-0.6); }
+  100%      { transform: scaleX(1); }
+}
+
+@keyframes memoko-flip-healthy {
+  0%, 50%   { transform: scaleX(1); }
+  54%       { transform: scaleX(0.6); }
+  58%, 92%  { transform: scaleX(-1); }
+  96%       { transform: scaleX(-0.6); }
+  100%      { transform: scaleX(1); }
+}
+
+@keyframes memoko-flip-heavy {
+  0%, 50%   { transform: scaleX(1); }
+  57%       { transform: scaleX(0.6); }
+  64%, 88%  { transform: scaleX(-1); }
+  94%       { transform: scaleX(-0.6); }
+  100%      { transform: scaleX(1); }
 }
 /* Keep the entrance hold and the idle/attentive pauses working. */
 .root.intro .trk,
@@ -1118,7 +1187,7 @@
 }
 
 /* Props are pulled out: laptop + notepad pop into her hands with anticipation. */
-.sp-lap, .sp-pad {
+.sp-lap, .sp-pad, .sp-book-wrap {
   transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: mk-prop-in 0.44s cubic-bezier(0.30, 0.85, 0.30, 1) both;
@@ -1224,6 +1293,70 @@
   transform-box: fill-box;
   transform-origin: center;
   animation: memoko-spark 1.4s ease-in-out infinite;
+}
+
+/* ============================================================ DAMAGE HURT === */
+.sp-hurt .sp-flinch {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-hurt-flinch 0.48s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+}
+.sp-hurt .sp-headG {
+  transform-box: fill-box;
+  transform-origin: 50% 88%;
+  animation: mk-hurt-head 0.48s cubic-bezier(0.18, 0.72, 0.22, 1) both;
+}
+@keyframes mk-hurt-flinch {
+  0%   { transform: translateY(0) rotate(0deg); }
+  24%  { transform: translateY(1.4px) rotate(-10deg); }
+  48%  { transform: translateY(-1.6px) rotate(6deg); }
+  72%  { transform: translateY(0.6px) rotate(-2deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes mk-hurt-head {
+  0%   { transform: rotate(0deg) translateY(0); }
+  28%  { transform: rotate(-7deg) translateY(0.6px); }
+  54%  { transform: rotate(3deg) translateY(-0.5px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+
+/* =============================================================== READING === */
+.sp-book .sp-bookbob {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mk-sit-breathe 3.5s ease-in-out infinite;
+}
+.sp-book .sp-dangleA { animation: mk-book-leg-a 3.4s ease-in-out infinite; }
+.sp-book .sp-dangleB { animation: mk-book-leg-b 3.4s ease-in-out infinite; animation-delay: -0.45s; }
+@keyframes mk-book-leg-a {
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50% { transform: rotate(1.5deg) translateY(0.4px); }
+}
+@keyframes mk-book-leg-b {
+  0%, 100% { transform: rotate(2deg) translateY(0); }
+  50% { transform: rotate(-1.5deg) translateY(0.4px); }
+}
+.sp-book .sp-headG {
+  transform-box: fill-box;
+  transform-origin: 50% 88%;
+  animation: mk-book-nod 3.2s ease-in-out infinite;
+}
+@keyframes mk-book-nod {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  38% { transform: rotate(2.4deg) translateY(0.4px); }
+  62% { transform: rotate(-1.2deg) translateY(-0.4px); }
+}
+.sp-book .sp-pageL,
+.sp-book .sp-pageR {
+  transform-box: fill-box;
+  animation: mk-page-flutter 2.8s ease-in-out infinite;
+}
+.sp-book .sp-pageL { transform-origin: 100% 8%; }
+.sp-book .sp-pageR { transform-origin: 0% 8%; animation-delay: -1.4s; }
+@keyframes mk-page-flutter {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  45% { transform: rotate(-3deg) translateY(-0.3px); }
+  55% { transform: rotate(2deg) translateY(0.3px); }
 }
 
 /* ======================================================== YAWN + STRETCH === */
@@ -1372,6 +1505,155 @@
   100% { opacity: 0; transform: translateY(var(--fall, 64px)) rotate(var(--spin, 420deg)) scaleY(1); }
 }
 
+/* ======================================================= BERRY SNACK === */
+.root.berry .pop {
+  animation: mk-berry-hop 1.35s cubic-bezier(0.22, 0.75, 0.28, 1) both;
+}
+.root.berry .pill {
+  animation: mk-berry-glow 1.35s ease-out both;
+}
+@keyframes mk-berry-hop {
+  0%   { transform: translateY(0) scale(1, 1); }
+  20%  { transform: translateY(0) scale(1.1, 0.88); }
+  42%  { transform: translateY(-14px) scale(0.92, 1.1); }
+  68%  { transform: translateY(0) scale(1.03, 0.96); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@keyframes mk-berry-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  48% {
+    border-color: color-mix(in srgb, #ff5d8f 62%, var(--border));
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 18px rgba(255, 93, 143, 0.42);
+  }
+}
+.berry-drop {
+  position: absolute;
+  left: 25px;
+  bottom: calc(100% + 18px);
+  width: 14px;
+  height: 18px;
+  pointer-events: none;
+  z-index: 6;
+  animation: mk-berry-drop 1.35s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.berry-fruit {
+  position: absolute;
+  inset: auto 1px 0 1px;
+  height: 13px;
+  border-radius: 3px 3px 5px 5px;
+  background: linear-gradient(180deg, #ff87b0, #ff5d8f 48%, #d93a6d);
+  transform: rotate(45deg);
+  box-shadow: inset -1px -1px 0 rgba(108, 18, 48, 0.35);
+}
+.berry-leaf {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 6px;
+  height: 5px;
+  background: #4ecf78;
+  clip-path: polygon(50% 0, 100% 45%, 72% 100%, 28% 100%, 0 45%);
+}
+@keyframes mk-berry-drop {
+  0%   { opacity: 0; transform: translateY(-26px) rotate(-14deg) scale(0.65); }
+  22%  { opacity: 1; transform: translateY(-8px) rotate(10deg) scale(1); }
+  44%  { transform: translateY(10px) rotate(-10deg) scale(1); }
+  60%  { transform: translateY(-2px) rotate(7deg) scale(1.04); }
+  100% { opacity: 0; transform: translateY(28px) rotate(-6deg) scale(0.8); }
+}
+
+/* ======================================================= SUMMIT CLEAR === */
+.root.summit .pop {
+  animation: mk-summit-hop 1.8s cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+.root.summit .pill {
+  animation: mk-summit-glow 1.8s linear both;
+}
+@keyframes mk-summit-hop {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  18% { transform: translateY(-9px) rotate(-8deg); }
+  38% { transform: translateY(0) rotate(0deg); }
+  56% { transform: translateY(-6px) rotate(7deg); }
+  76% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes mk-summit-glow {
+  0%,
+  100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  33% {
+    border-color: #ffd166;
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 20px rgba(255, 209, 102, 0.48);
+  }
+  66% {
+    border-color: #ff5d8f;
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.25),
+      0 0 18px rgba(255, 93, 143, 0.4);
+  }
+}
+.summit-flag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  width: 24px;
+  height: 28px;
+  transform: translateX(7px);
+  pointer-events: none;
+  z-index: 6;
+  animation: mk-summit-raise 1.8s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.summit-pole {
+  position: absolute;
+  left: 1px;
+  bottom: 0;
+  width: 2px;
+  height: 24px;
+  background: #f4d38f;
+  box-shadow: 0 0 0 1px rgba(77, 45, 9, 0.28);
+}
+.summit-cloth {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 14px;
+  height: 9px;
+  background: linear-gradient(180deg, #ff8ab7, #ff5d8f);
+  clip-path: polygon(0 0, 100% 0, 74% 52%, 100% 100%, 0 100%);
+  transform-origin: 0 50%;
+  animation: mk-summit-flag 0.7s ease-in-out infinite;
+}
+.summit-star {
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  width: 3px;
+  height: 3px;
+  background: #fff7d6;
+  box-shadow: 0 0 0 1px rgba(131, 88, 17, 0.25);
+}
+@keyframes mk-summit-raise {
+  0%   { opacity: 0; transform: translateX(7px) translateY(14px) scale(0.7); }
+  18%  { opacity: 1; }
+  100% { opacity: 1; transform: translateX(7px) translateY(0) scale(1); }
+}
+@keyframes mk-summit-flag {
+  0%, 100% { transform: skewY(0deg); }
+  50% { transform: skewY(-7deg); }
+}
+
 /* ===================================================== HP SEGMENT DRAIN === */
 /* When a cell empties on an HP drop, the fill flickers and sinks out instead
    of blinking off — pairs with the floating "-N HP" number. */
@@ -1501,11 +1783,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sp-sit .sp-sitbob, .sp-laptop .sp-sitbob,
+  .sp-hurt .sp-flinch, .sp-hurt .sp-headG,
+  .sp-sit .sp-sitbob, .sp-laptop .sp-sitbob, .sp-book .sp-bookbob,
   .sp-sit .sp-dangleA, .sp-sit .sp-dangleB,
   .sp-laptop .sp-dangleA, .sp-laptop .sp-dangleB,
-  .sp-sit .sp-headG, .sp-laptop .sp-headG,
+  .sp-book .sp-dangleA, .sp-book .sp-dangleB,
+  .sp-sit .sp-headG, .sp-laptop .sp-headG, .sp-book .sp-headG,
   .sp-laptop .sp-type-l, .sp-laptop .sp-type-r, .sp-laptop .sp-lap-scr,
+  .sp-book .sp-pageL, .sp-book .sp-pageR,
   .sp-nap .sp-napbob, .sp-nap .sp-headG,
   .root.idle-nap .zzz i,
   .root.idle-enter .pop,
@@ -1517,7 +1802,9 @@
   .root.idle-kick .sp-dangleA, .root.idle-kick .sp-dangleB, .root.idle-kick .sp-sit .sp-headG,
   .root.idle-peek .sp-sit .sp-headG,
   .root.petted .pop, .heart,
-  .mk-swap, .sp-lap, .sp-pad,
+  .mk-swap, .sp-lap, .sp-pad, .sp-book-wrap,
+  .root.berry .pop, .root.berry .pill, .berry-drop,
+  .root.summit .pop, .root.summit .pill, .summit-flag, .summit-cloth,
   .mark, .root.startle .pop,
   .seg.draining::after,
   .srow b.bump {

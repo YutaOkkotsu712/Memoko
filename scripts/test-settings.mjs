@@ -11,6 +11,39 @@ const cases = [
     },
   },
   {
+    name: 'defaults: HP bands are 70 / 40 / 10',
+    run: () => {
+      const s = mergeSettings(undefined);
+      return s.thresholds.healthy === 30 && s.thresholds.heavy === 60 && s.thresholds.critical === 90;
+    },
+  },
+  {
+    name: 'defaults: paste auditor starts at 150 tokens',
+    run: () => mergeSettings(undefined).pasteAuditMinTokens === 150,
+  },
+  {
+    name: 'legacy default thresholds migrate to new HP bands',
+    run: () => {
+      const s = mergeSettings({ thresholds: { healthy: 40, heavy: 70, critical: 90 } });
+      return s.thresholds.healthy === 30 && s.thresholds.heavy === 60 && s.thresholds.critical === 90;
+    },
+  },
+  {
+    name: 'legacy paste audit default migrates to 150',
+    run: () => mergeSettings({ pasteAuditMinTokens: 1000 }).pasteAuditMinTokens === 150,
+  },
+  {
+    name: 'custom paste audit threshold is preserved',
+    run: () => mergeSettings({ pasteAuditMinTokens: 300 }).pasteAuditMinTokens === 300,
+  },
+  {
+    name: 'custom thresholds are preserved',
+    run: () => {
+      const s = mergeSettings({ thresholds: { healthy: 25, heavy: 55, critical: 85 } });
+      return s.thresholds.healthy === 25 && s.thresholds.heavy === 55 && s.thresholds.critical === 85;
+    },
+  },
+  {
     name: 'legacy global contextBudget migrates to claude only',
     run: () => {
       const s = mergeSettings({ contextBudget: 150_000 });

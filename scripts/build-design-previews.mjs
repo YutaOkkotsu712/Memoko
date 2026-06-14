@@ -288,7 +288,7 @@ function popupMarkup() {
   <section><h2>Estimates</h2>
     <label class="row"><span>Context budget <small>tokens</small></span><input type="number" value="200000" /></label>
     <label class="row"><span>Characters per token</span><input type="number" value="3.7" /></label>
-    <label class="row"><span>Audit pastes over <small>tokens</small></span><input type="number" value="1000" /></label></section>
+    <label class="row"><span>Audit pastes over <small>tokens</small></span><input type="number" value="150" /></label></section>
   <section><h2>Health thresholds <small>% of context used</small></h2>
     <div class="thresholds">
       <label>Healthy &ge; <input type="number" value="40" /></label>
