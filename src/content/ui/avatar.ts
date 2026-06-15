@@ -38,6 +38,17 @@ export type MemokoPose =
   | 'deadpan'
   | 'flash'
   | 'menace'
+  | 'boatfish'
+  | 'diveaim'
+  | 'nailready'
+  | 'sanslazy'
+  | 'cardfan'
+  | 'fingergun'
+  | 'dashcrouch'
+  | 'watercrop'
+  | 'pogoshovel'
+  | 'dashstrike'
+  | 'melinoe'
   | 'fierce';
 
 const HAIR = 'var(--mk-hair, #e893a8)';
@@ -338,6 +349,17 @@ export function spriteSvg(pose: MemokoPose, size: number): string {
     case 'deadpan':
     case 'flash':
     case 'menace':
+    case 'boatfish':
+    case 'diveaim':
+    case 'nailready':
+    case 'sanslazy':
+    case 'cardfan':
+    case 'fingergun':
+    case 'dashcrouch':
+    case 'watercrop':
+    case 'pogoshovel':
+    case 'dashstrike':
+    case 'melinoe':
       return comboSvg(pose, size);
     default:
       return standSvg(pose, size);
@@ -371,6 +393,62 @@ function braceLegs(pale = false): string {
 }
 
 /** Combat / action poses for the Anime Ultimates. One rig, arms vary per pose. */
+/** Worn gear baked onto the head (head-space 32×32) so it sits on her face/
+ *  hair in her own pixel style and moves with her — like props held in-hand. */
+function gearForPose(pose: MemokoPose): string {
+  switch (pose) {
+    case 'diveaim': // Dave the Diver goggles across her eyes
+      return (
+        px(6, 14, 20, 1, '#1c2630') +
+        px(8, 13, 16, 6, '#2b3640') +
+        px(9, 14, 6, 4, '#7fdfff') + px(10, 15, 2, 1, '#dffbff') +
+        px(17, 14, 6, 4, '#7fdfff') + px(18, 15, 2, 1, '#dffbff')
+      );
+    case 'watercrop': // Stardew straw hat on her head
+      return (
+        px(3, 8, 26, 2, '#d8b25a') + px(3, 10, 26, 1, '#7a5e18') +
+        px(9, 2, 14, 6, '#d8b25a') + px(9, 2, 14, 1, '#a9831f') + px(9, 7, 14, 1, '#7a5e18')
+      );
+    case 'nailready': // Hollow Knight pale mask + horns
+      return (
+        px(8, 11, 15, 8, '#e9eef5') +
+        px(11, 14, 3, 4, '#1b2030') + px(18, 14, 3, 4, '#1b2030') +
+        px(5, 5, 3, 4, '#e9eef5') + px(3, 2, 3, 4, '#e9eef5') +
+        px(24, 5, 3, 4, '#e9eef5') + px(26, 2, 3, 4, '#e9eef5')
+      );
+    case 'sanslazy': // Sans glowing blue left eye
+      return (
+        px(8, 14, 5, 5, '#1a6fbf', '', 0.7) +
+        px(9, 15, 3, 3, '#6fe0ff') + px(10, 16, 1, 1, '#dffbff') +
+        px(10, 10, 1, 3, '#9fe8ff', '', 0.8)
+      );
+    case 'pogoshovel': // Shovel Knight blue helm + side horns
+      return (
+        px(6, 8, 17, 5, '#3f6fae') + px(6, 8, 17, 1, '#6f9fd6') + px(6, 12, 17, 1, '#274d80') +
+        px(4, 6, 3, 4, '#cfd8e2') + px(25, 6, 3, 4, '#cfd8e2')
+      );
+    case 'dashstrike': // Hades laurel wreath
+      return (
+        px(5, 6, 2, 2, '#d8b25a') + px(6, 8, 2, 2, '#d8b25a') + px(7, 10, 2, 2, '#d8b25a') +
+        px(25, 6, 2, 2, '#d8b25a') + px(24, 8, 2, 2, '#d8b25a') + px(23, 10, 2, 2, '#d8b25a') +
+        px(4, 7, 1, 1, '#f2d27e') + px(27, 7, 1, 1, '#f2d27e')
+      );
+    case 'melinoe': // silver witch's circlet with a teal moon gem
+      return (
+        px(7, 8, 16, 2, '#c9d6e2') + px(7, 7, 16, 1, '#eef4f8') +
+        px(13, 5, 3, 3, '#5fe0c4') + px(14, 5, 1, 1, '#eafff8') +
+        px(9, 6, 1, 1, '#c9d6e2') + px(22, 6, 1, 1, '#c9d6e2')
+      );
+    case 'boatfish': // Dredge oilskin sou'wester rain hood
+      return (
+        px(6, 7, 20, 4, '#caa24a') + px(6, 7, 20, 1, '#e0bd62') + px(6, 10, 20, 1, '#8a6e2a') +
+        px(4, 10, 24, 2, '#caa24a') + px(4, 12, 24, 1, '#8a6e2a')
+      );
+    default:
+      return '';
+  }
+}
+
 function comboSvg(pose: MemokoPose, size: number): string {
   const w = Math.round((size * 48) / 50);
   let arms = '';
@@ -475,10 +553,81 @@ function comboSvg(pose: MemokoPose, size: number): string {
         arm('sp-armB', 'M27.8 23 L35.2 16.8', false, 35, 15);
       headRot = -8;
       break;
+    case 'boatfish': // holding a fishing rod out to her right, curious
+      face = 'watch';
+      arms = arm('sp-armA', 'M20.4 23 L24 25.4', false, 24, 25) +
+        arm('sp-armB', 'M27.6 23 L31.4 21.4', false, 32.5, 20.4);
+      headRot = 4;
+      break;
+    case 'diveaim': // harpoon aimed forward, both hands bracing it
+      arms = arm('sp-armB', 'M27.8 23 L34.6 22', false, 35.6, 21.4) +
+        arm('sp-armA', 'M20.2 23 L26.4 23.8', false, 27.4, 23.4);
+      headRot = 2;
+      break;
+    case 'nailready': // nail raised to the side, clean ready stance
+      legs = braceLegs();
+      arms = arm('sp-armB', 'M27.6 23 L30.4 14.8', false, 31, 12.6) +
+        arm('sp-armA', 'M20.2 23 L19 30', false, 18, 30);
+      headRot = -4;
+      break;
+    case 'sanslazy': // hands tucked in hoodie pockets, slouched grin
+      face = 'smug';
+      arms = `<g class="sp-armA">${stroke('M20.6 23.4 L22.6 27', LIMB, 2.8)}${px(22, 26.4, 3, 3, LIMB)}</g>` +
+        `<g class="sp-armB">${stroke('M27.4 23.4 L25.4 27', LIMB, 2.8)}${px(23, 26.4, 3, 3, LIMB)}</g>`;
+      lean = 3;
+      headRot = 4;
+      break;
+    case 'cardfan': // flicking a fan of cards forward
+      face = 'smug';
+      arms = arm('sp-armB', 'M27.8 23 L34.6 20', false, 35.6, 19) +
+        arm('sp-armA', 'M20.2 23 L16.4 25.4', false, 15, 25.4);
+      headRot = 3;
+      break;
+    case 'fingergun': // playful finger-gun forward
+      face = 'smug';
+      arms = arm('sp-armB', 'M27.8 23 L35.4 21.6', false, 36.4, 21) +
+        arm('sp-armA', 'M20.2 23 L18.6 29.4', false, 17.6, 29);
+      headRot = 2;
+      break;
+    case 'dashcrouch': // low crouch, arms swept back, dash-ready
+      legs = braceLegs();
+      arms = arm('sp-armA', 'M20.2 23.4 L15.8 26.6', false, 14.4, 26.4) +
+        arm('sp-armB', 'M27.8 23.4 L31.6 25.6', false, 32.6, 25.4);
+      lean = 8;
+      headRot = 4;
+      break;
+    case 'watercrop': // tilting a watering can down to the right
+      face = 'healthy';
+      arms = arm('sp-armB', 'M27.8 23 L32.4 25.6', false, 33.4, 26) +
+        arm('sp-armA', 'M20.4 23 L25 25', false, 25.6, 25);
+      lean = 4;
+      headRot = 5;
+      break;
+    case 'pogoshovel': // shovel gripped pointing down in front (pogo)
+      legs = braceLegs();
+      arms = `<g class="sp-armA">${stroke('M20.6 23 L23 28', LIMB, 2.8)}${px(22.4, 27.6, 3, 3, LIMB)}</g>` +
+        `<g class="sp-armB">${stroke('M27.4 23 L25 28', LIMB, 2.8)}${px(24.6, 27.6, 3, 3, LIMB)}</g>`;
+      headRot = -2;
+      break;
+    case 'dashstrike': // hard forward lunge, strike arm extended
+      legs = braceLegs();
+      arms = arm('sp-armB', 'M27.8 23 L35.6 24', false, 36.6, 23.6) +
+        arm('sp-armA', 'M20.2 23 L17 27', false, 15.6, 27);
+      lean = 10;
+      headRot = 4;
+      break;
+    case 'melinoe': // witch's cast: one hand thrust forward, blade drawn back
+      face = 'fierce';
+      arms = arm('sp-armB', 'M27.8 23 L34.6 20', false, 35.6, 18.8) +
+        arm('sp-armA', 'M20.2 23 L16.4 25.6', false, 15, 25.6);
+      lean = 3;
+      headRot = 2;
+      break;
     default:
       break;
   }
-  const headInner = headRot ? `<g transform="rotate(${headRot} 16 17.6)">${head(face)}</g>` : head(face);
+  const headBody = head(face) + gearForPose(pose);
+  const headInner = headRot ? `<g transform="rotate(${headRot} 16 17.6)">${headBody}</g>` : headBody;
   return (
     `<svg viewBox="0 0 48 50" width="${w}" height="${size}" class="sp sp-combo sp-${pose}" aria-hidden="true" shape-rendering="crispEdges" style="display:block;overflow:visible">` +
     `<g transform="rotate(${lean} 24 46)"><g class="sp-bob">` +

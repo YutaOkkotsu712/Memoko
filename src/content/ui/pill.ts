@@ -962,6 +962,16 @@ export function createPill(opts: PillOptions): PillUI {
     'alpha-exodia',
     'alpha-kqueen',
     'alpha-zenitsu',
+    'arc-dredge',
+    'arc-diver',
+    'arc-knight',
+    'arc-sans',
+    'arc-balatro',
+    'arc-cuphead',
+    'arc-celeste',
+    'arc-stardew',
+    'arc-shovel',
+    'arc-melinoe',
   ] as const;
 
   type PetClass = 'pet-bright' | 'pet-soft' | 'pet-tired' | 'pet-critical';
@@ -1328,6 +1338,92 @@ export function createPill(opts: PillOptions): PillUI {
     s += rect(6, 10, 12, 12, Y) + rect(8, 12, 8, 8, YD);
     s += rect(3, 11, 3, 10, Y) + rect(18, 11, 3, 10, Y) + rect(2, 6, 3, 6, SK) + rect(19, 6, 3, 6, SK);
     s += rect(8, 22, 4, 14, Y) + rect(14, 22, 4, 14, Y) + rect(6, 8, 12, 1, G);
+    return s + '</svg>';
+  };
+
+  // ---- Indie Arcade 0–9: pixel-art props --------------------------------
+  const boatSVG = (): string => {
+    const H = '#3a2c22', H2 = '#52402f', RIM = '#6b5240', IN = '#1c140e';
+    let s = '<svg viewBox="0 0 44 16" width="66" height="24" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(2, 6, 40, 2, RIM) + rect(4, 8, 36, 4, H2) + rect(6, 12, 32, 3, H) + rect(12, 9, 20, 2, IN);
+    s += rect(0, 5, 4, 2, RIM) + rect(40, 5, 4, 2, RIM);
+    return s + '</svg>';
+  };
+  const relicSVG = (): string => {
+    const B = '#1d3b3a', B2 = '#2c5a55', G = '#8ff0d0', P = '#0b1a1a';
+    let s = '<svg viewBox="0 0 22 24" width="33" height="36" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(5, 2, 12, 16, B) + rect(3, 5, 2, 10, B2) + rect(17, 5, 2, 10, B2) + rect(7, 0, 8, 3, B2);
+    s += rect(7, 6, 8, 8, G) + rect(9, 8, 4, 4, P) + rect(10, 9, 2, 2, '#cffaf0');
+    s += rect(5, 18, 3, 5, B2) + rect(10, 18, 3, 6, B2) + rect(15, 18, 3, 5, B2);
+    return s + '</svg>';
+  };
+  const harpoonSVG = (): string => {
+    const M = '#c7d0d8', D = '#6b7681', T = '#eef4f8';
+    let s = '<svg viewBox="0 0 20 6" width="30" height="9" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(0, 2, 14, 2, M) + rect(0, 2, 8, 1, T) + rect(14, 1, 3, 4, D) + rect(16, 0, 4, 6, M) + rect(13, 0, 1, 6, D);
+    return s + '</svg>';
+  };
+  const fishSVG = (): string => {
+    const F = '#2a3942';
+    let s = '<svg viewBox="0 0 18 10" width="27" height="15" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(3, 2, 11, 6, F) + rect(1, 3, 2, 4, F) + rect(13, 0, 4, 3, F) + rect(13, 7, 4, 3, F) + rect(5, 3, 1, 1, '#bfe9ff');
+    return s + '</svg>';
+  };
+  const blasterSVG = (): string => {
+    const B = '#eef3f8', D = '#9fb0c0', E = '#0a0d12';
+    let s = '<svg viewBox="0 0 24 18" width="36" height="27" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(4, 0, 16, 10, B) + rect(2, 2, 2, 6, D) + rect(20, 2, 2, 6, D);
+    s += rect(6, 2, 5, 4, E) + rect(13, 2, 5, 4, E);
+    s += rect(8, 10, 8, 3, B) + rect(6, 13, 12, 5, B) + rect(8, 13, 2, 5, D) + rect(11, 13, 2, 5, D) + rect(14, 13, 2, 5, D);
+    return s + '</svg>';
+  };
+  const boneSVG = (): string => {
+    const W = '#f2f6fa', S = '#c2ccd6';
+    let s = '<svg viewBox="0 0 8 20" width="12" height="30" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(3, 2, 2, 16, W) + rect(1, 0, 6, 3, W) + rect(1, 17, 6, 3, W) + rect(3, 3, 1, 14, S);
+    return s + '</svg>';
+  };
+  const cardSVG = (face: string, pip: string): string => {
+    let s = '<svg viewBox="0 0 14 20" width="21" height="30" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(0, 0, 14, 20, '#f4efe6') + rect(0, 0, 14, 1, '#cfc6b4') + rect(0, 19, 14, 1, '#cfc6b4');
+    s += rect(1, 1, 12, 18, face) + rect(3, 3, 8, 14, '#f7f2e8');
+    s += rect(5, 6, 4, 8, pip) + rect(6, 4, 2, 2, pip) + rect(6, 14, 2, 2, pip);
+    return s + '</svg>';
+  };
+  const starSVG = (color: string): string => {
+    let s = '<svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(7, 0, 2, 16, color) + rect(0, 7, 16, 2, color) + rect(3, 3, 2, 2, color) + rect(11, 3, 2, 2, color) + rect(3, 11, 2, 2, color) + rect(11, 11, 2, 2, color) + rect(6, 6, 4, 4, '#fff');
+    return s + '</svg>';
+  };
+  const strawberrySVG = (): string => {
+    const R = '#ff3b5c', D = '#c01f3c', L = '#3fbf4a', S = '#fff';
+    let s = '<svg viewBox="0 0 12 14" width="18" height="21" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(2, 4, 8, 7, R) + rect(3, 11, 6, 2, D) + rect(4, 13, 4, 1, D) + rect(3, 1, 6, 3, L) + rect(5, 0, 2, 2, L);
+    s += rect(4, 6, 1, 1, S) + rect(7, 7, 1, 1, S) + rect(5, 9, 1, 1, S);
+    return s + '</svg>';
+  };
+  const cropSVG = (): string => {
+    const L = '#4fbf52', LD = '#2f8f3a', ST = '#6b4a2a';
+    let s = '<svg viewBox="0 0 12 14" width="18" height="21" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(5, 6, 2, 8, ST) + rect(2, 4, 4, 3, L) + rect(6, 2, 4, 3, L) + rect(1, 5, 2, 2, LD) + rect(9, 3, 2, 2, LD) + rect(5, 0, 2, 4, L);
+    return s + '</svg>';
+  };
+  const shovelSVG = (): string => {
+    const M = '#c7d0d8', D = '#7a838d', H = '#7a4a2a', B = '#e9eef5';
+    let s = '<svg viewBox="0 0 10 26" width="15" height="39" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(4, 0, 2, 16, H) + rect(2, 16, 6, 7, M) + rect(2, 16, 6, 1, B) + rect(2, 23, 6, 2, D) + rect(3, 16, 1, 7, B);
+    return s + '</svg>';
+  };
+  const gemSVG = (color: string, light: string): string => {
+    let s = '<svg viewBox="0 0 8 8" width="12" height="12" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(2, 0, 4, 2, light) + rect(0, 2, 8, 4, color) + rect(2, 6, 4, 2, color) + rect(2, 2, 2, 2, light);
+    return s + '</svg>';
+  };
+  const moonSVG = (): string => {
+    const M = '#d6efe6', G = '#9fe8d8';
+    let s = '<svg viewBox="0 0 16 16" width="22" height="22" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+    s += rect(6, 1, 5, 2, M) + rect(3, 3, 3, 2, M) + rect(2, 5, 2, 6, M) + rect(3, 11, 3, 2, M) + rect(6, 13, 5, 2, M);
+    s += rect(5, 3, 2, 2, G) + rect(4, 5, 2, 6, G) + rect(5, 11, 2, 2, G);
     return s + '</svg>';
   };
 
@@ -1943,6 +2039,480 @@ export function createPill(opts: PillOptions): PillUI {
       syncPose();
       scheduleIdle();
     }, 1800);
+  };
+
+  // ===== Indie Arcade 0–9 (Space + digit). She wears the gear via her pose;
+  // only projectiles / scene props are spawned here. =====================
+
+  // 0 — Dredge: sit in the boat, cast a line, pull up an eyeball relic.
+  const fireDredge = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'boatfish';
+    root.classList.remove('arc-dredge');
+    void root.offsetWidth;
+    root.classList.add('arc-dredge');
+    syncPose();
+    showBubble('Something bit…');
+    if (!reducedMotion()) {
+      const boat = document.createElement('span');
+      boat.className = 'dr-boat';
+      boat.innerHTML = boatSVG();
+      pillspot.appendChild(boat);
+      window.setTimeout(() => boat.remove(), 2050);
+      const line = document.createElement('span');
+      line.className = 'dr-line';
+      pillspot.appendChild(line);
+      window.setTimeout(() => line.remove(), 2050);
+      const relic = document.createElement('span');
+      relic.className = 'dr-relic';
+      relic.innerHTML = relicSVG();
+      pillspot.appendChild(relic);
+      window.setTimeout(() => relic.remove(), 2050);
+      for (let i = 0; i < 7; i++) {
+        const d = document.createElement('span');
+        d.className = 'dr-drip';
+        d.style.left = `${44 + i * 4}px`;
+        d.style.bottom = `calc(100% + ${10 + (i % 3) * 6}px)`;
+        d.style.setProperty('--d', `${(1.2 + i * 0.05).toFixed(2)}s`);
+        d.style.setProperty('--y', `${(10 + Math.random() * 8).toFixed(0)}px`);
+        pillspot.appendChild(d);
+        window.setTimeout(() => d.remove(), 2050);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 2000);
+  };
+
+  // 1 — Dave the Diver: goggles (worn), fire a harpoon, fish streaks, bubbles.
+  const fireDiver = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'diveaim';
+    root.classList.remove('arc-diver');
+    void root.offsetWidth;
+    root.classList.add('arc-diver');
+    syncPose();
+    showBubble('Dive! …harpoon ready.');
+    if (!reducedMotion()) {
+      const harpoon = document.createElement('span');
+      harpoon.className = 'dv-harpoon';
+      harpoon.innerHTML = harpoonSVG();
+      pillspot.appendChild(harpoon);
+      window.setTimeout(() => harpoon.remove(), 1700);
+      const fish = document.createElement('span');
+      fish.className = 'dv-fish';
+      fish.innerHTML = fishSVG();
+      pillspot.appendChild(fish);
+      window.setTimeout(() => fish.remove(), 1700);
+      for (let i = 0; i < 10; i++) {
+        const b = document.createElement('span');
+        b.className = 'dv-bub';
+        b.style.left = `${16 + i * 7}px`;
+        b.style.bottom = `calc(100% - ${4 + (i % 4) * 7}px)`;
+        b.style.setProperty('--d', `${(Math.random() * 0.8).toFixed(2)}s`);
+        b.style.setProperty('--y', `${(-18 - Math.random() * 20).toFixed(0)}px`);
+        b.style.setProperty('--s', `${(0.6 + Math.random() * 0.8).toFixed(2)}`);
+        pillspot.appendChild(b);
+        window.setTimeout(() => b.remove(), 1700);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1700);
+  };
+
+  // 2 — Hollow Knight: cloak mask + horns (worn), clean nail slash + soul motes.
+  const fireHollowKnight = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'nailready';
+    root.classList.remove('arc-knight');
+    void root.offsetWidth;
+    root.classList.add('arc-knight');
+    syncPose();
+    showBubble('…');
+    if (!reducedMotion()) {
+      const slash = document.createElement('span');
+      slash.className = 'hk-slash';
+      pillspot.appendChild(slash);
+      window.setTimeout(() => slash.remove(), 1650);
+      for (let i = 0; i < 9; i++) {
+        const m = document.createElement('span');
+        m.className = 'hk-mote';
+        m.style.left = `${12 + i * 4}px`;
+        m.style.bottom = `calc(100% - ${4 + (i % 3) * 8}px)`;
+        m.style.setProperty('--d', `${(Math.random() * 0.7).toFixed(2)}s`);
+        m.style.setProperty('--x', `${(i - 4) * 4}px`);
+        m.style.setProperty('--y', `${(-18 - Math.random() * 18).toFixed(0)}px`);
+        pillspot.appendChild(m);
+        window.setTimeout(() => m.remove(), 1650);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1600);
+  };
+
+  // 3 — Sans: blue eye (worn), bones slide, a Gaster Blaster fires a beam.
+  const fireSans = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'sanslazy';
+    root.classList.remove('arc-sans');
+    void root.offsetWidth;
+    root.classList.add('arc-sans');
+    syncPose();
+    showBubble('* heh. you feel your sins.');
+    if (!reducedMotion()) {
+      const blaster = document.createElement('span');
+      blaster.className = 'sn-blaster';
+      blaster.innerHTML = blasterSVG();
+      pillspot.appendChild(blaster);
+      window.setTimeout(() => blaster.remove(), 1950);
+      const beam = document.createElement('span');
+      beam.className = 'sn-beam';
+      pillspot.appendChild(beam);
+      window.setTimeout(() => beam.remove(), 1950);
+      for (let i = 0; i < 4; i++) {
+        const b = document.createElement('span');
+        b.className = 'sn-bone';
+        b.innerHTML = boneSVG();
+        b.style.left = `${14 + i * 8}px`;
+        b.style.setProperty('--d', `${(0.2 + i * 0.12).toFixed(2)}s`);
+        pillspot.appendChild(b);
+        window.setTimeout(() => b.remove(), 1950);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1900);
+  };
+
+  // 4 — Balatro: throw a card fan, chips bounce, ×mult flashes.
+  const fireBalatro = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'cardfan';
+    root.classList.remove('arc-balatro');
+    void root.offsetWidth;
+    root.classList.add('arc-balatro');
+    syncPose();
+    showBubble('Flush! ×8 mult.');
+    if (!reducedMotion()) {
+      const faces = ['#d8455c', '#2c6fb0', '#3f9b4a', '#9a5bd6', '#d89a2a'];
+      const pips = ['#7a1530', '#143a5a', '#13502a', '#3a1560', '#5a3a00'];
+      for (let i = 0; i < 5; i++) {
+        const c = document.createElement('span');
+        c.className = 'bl-card';
+        c.innerHTML = cardSVG(faces[i]!, pips[i]!);
+        c.style.setProperty('--r', `${(i - 2) * 16}deg`);
+        c.style.setProperty('--tx', `${(i - 2) * 13}px`);
+        c.style.setProperty('--d', `${(0.1 + i * 0.06).toFixed(2)}s`);
+        pillspot.appendChild(c);
+        window.setTimeout(() => c.remove(), 1750);
+      }
+      const mult = document.createElement('span');
+      mult.className = 'bl-mult';
+      mult.textContent = '×8';
+      pillspot.appendChild(mult);
+      window.setTimeout(() => mult.remove(), 1700);
+      for (let i = 0; i < 6; i++) {
+        const ch = document.createElement('span');
+        ch.className = 'bl-chip';
+        ch.style.left = `${14 + i * 8}px`;
+        ch.style.setProperty('--d', `${(Math.random() * 0.5).toFixed(2)}s`);
+        ch.style.setProperty('--x', `${(i - 3) * 6}px`);
+        pillspot.appendChild(ch);
+        window.setTimeout(() => ch.remove(), 1700);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1700);
+  };
+
+  // 5 — Cuphead: finger-gun pellets, iris flash, parry star.
+  const fireCuphead = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'fingergun';
+    root.classList.remove('arc-cuphead');
+    void root.offsetWidth;
+    root.classList.add('arc-cuphead');
+    syncPose();
+    showBubble("Wallop! Let's go!");
+    if (!reducedMotion()) {
+      const iris = document.createElement('span');
+      iris.className = 'cup-iris';
+      pillspot.appendChild(iris);
+      window.setTimeout(() => iris.remove(), 1600);
+      const star = document.createElement('span');
+      star.className = 'cup-star';
+      star.innerHTML = starSVG('#ff5db0');
+      pillspot.appendChild(star);
+      window.setTimeout(() => star.remove(), 1600);
+      for (let i = 0; i < 6; i++) {
+        const p = document.createElement('span');
+        p.className = 'cup-pellet';
+        p.style.left = `40px`;
+        p.style.bottom = `calc(100% + ${16 + (i % 3) * 3}px)`;
+        p.style.setProperty('--d', `${(0.15 + i * 0.08).toFixed(2)}s`);
+        p.style.setProperty('--x', `${(40 + i * 8).toFixed(0)}px`);
+        p.style.setProperty('--y', `${((i % 2 ? -1 : 1) * (3 + Math.random() * 5)).toFixed(0)}px`);
+        pillspot.appendChild(p);
+        window.setTimeout(() => p.remove(), 1600);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1600);
+  };
+
+  // 6 — Celeste: red-hair dash (CSS recolor), blue/red trail, strawberry.
+  const fireCeleste = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'dashcrouch';
+    root.classList.remove('arc-celeste');
+    void root.offsetWidth;
+    root.classList.add('arc-celeste');
+    syncPose();
+    showBubble('Just breathe. Dash!');
+    if (!reducedMotion()) {
+      const trail = document.createElement('span');
+      trail.className = 'cl-trail';
+      pillspot.appendChild(trail);
+      window.setTimeout(() => trail.remove(), 1650);
+      const berry = document.createElement('span');
+      berry.className = 'cl-berry';
+      berry.innerHTML = strawberrySVG();
+      pillspot.appendChild(berry);
+      window.setTimeout(() => berry.remove(), 1650);
+      for (let i = 0; i < 8; i++) {
+        const d = document.createElement('span');
+        d.className = 'cl-dust';
+        d.style.left = `${20 + i * 6}px`;
+        d.style.bottom = `calc(100% - ${6 + (i % 3) * 6}px)`;
+        d.style.setProperty('--d', `${(Math.random() * 0.5).toFixed(2)}s`);
+        d.style.setProperty('--x', `${(-(i + 2) * 4).toFixed(0)}px`);
+        d.style.setProperty('--c', i % 2 ? '#ff4d6d' : '#5b8cff');
+        pillspot.appendChild(d);
+        window.setTimeout(() => d.remove(), 1650);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1600);
+  };
+
+  // 7 — Stardew: straw hat (worn), water a crop, gold-star harvest.
+  const fireStardew = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'watercrop';
+    root.classList.remove('arc-stardew');
+    void root.offsetWidth;
+    root.classList.add('arc-stardew');
+    syncPose();
+    showBubble('Fresh harvest!');
+    if (!reducedMotion()) {
+      const crop = document.createElement('span');
+      crop.className = 'sv-crop';
+      crop.innerHTML = cropSVG();
+      pillspot.appendChild(crop);
+      window.setTimeout(() => crop.remove(), 1850);
+      const can = document.createElement('span');
+      can.className = 'sv-water';
+      pillspot.appendChild(can);
+      window.setTimeout(() => can.remove(), 1850);
+      const star = document.createElement('span');
+      star.className = 'sv-star';
+      star.innerHTML = starSVG('#ffd23f');
+      pillspot.appendChild(star);
+      window.setTimeout(() => star.remove(), 1850);
+      for (let i = 0; i < 6; i++) {
+        const d = document.createElement('span');
+        d.className = 'sv-drop';
+        d.style.left = `${40 + i * 3}px`;
+        d.style.bottom = `calc(100% + ${6 + (i % 3) * 4}px)`;
+        d.style.setProperty('--d', `${(0.3 + i * 0.06).toFixed(2)}s`);
+        pillspot.appendChild(d);
+        window.setTimeout(() => d.remove(), 1850);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1800);
+  };
+
+  // 8 — Shovel Knight: helm (worn), shovel pogo, impact burst, gems scatter.
+  const fireShovel = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'pogoshovel';
+    root.classList.remove('arc-shovel');
+    void root.offsetWidth;
+    root.classList.add('arc-shovel');
+    syncPose();
+    showBubble('Shovel justice!');
+    if (!reducedMotion()) {
+      const glint = document.createElement('span');
+      glint.className = 'sk-glint';
+      pillspot.appendChild(glint);
+      window.setTimeout(() => glint.remove(), 1600);
+      const shovel = document.createElement('span');
+      shovel.className = 'sk-shovel';
+      shovel.innerHTML = shovelSVG();
+      pillspot.appendChild(shovel);
+      window.setTimeout(() => shovel.remove(), 1600);
+      const burst = document.createElement('span');
+      burst.className = 'sk-burst';
+      pillspot.appendChild(burst);
+      window.setTimeout(() => burst.remove(), 1600);
+      const burst2 = document.createElement('span');
+      burst2.className = 'sk-burst two';
+      pillspot.appendChild(burst2);
+      window.setTimeout(() => burst2.remove(), 1600);
+      const redgem = document.createElement('span');
+      redgem.className = 'sk-redgem';
+      redgem.innerHTML = gemSVG('#ff3b4a', '#ffd0d4');
+      pillspot.appendChild(redgem);
+      window.setTimeout(() => redgem.remove(), 1650);
+      const colors: Array<[string, string]> = [['#3fd0e6', '#bff5ff'], ['#5dff7a', '#d6ffe0'], ['#ffd23f', '#fff3c0']];
+      for (let i = 0; i < 5; i++) {
+        const g = document.createElement('span');
+        g.className = 'sk-gem';
+        const c = colors[i % colors.length]!;
+        g.innerHTML = gemSVG(c[0], c[1]);
+        g.style.left = `${18 + i * 5}px`;
+        g.style.setProperty('--d', `${(0.52 + i * 0.05).toFixed(2)}s`);
+        g.style.setProperty('--x', `${(i - 2) * 9}px`);
+        g.style.setProperty('--y', `${(-14 - Math.random() * 14).toFixed(0)}px`);
+        pillspot.appendChild(g);
+        window.setTimeout(() => g.remove(), 1650);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1600);
+  };
+
+  // 9 — Hades: laurel (worn), dash-strike flame trail + slash, boon, embers.
+  // 9 — Melinoë (Hades 2): moon Cast sigil, twin Sister Blade slashes, moonlight.
+  const fireMelinoe = () => {
+    clearIdleTimers();
+    idleStage = null;
+    setAttentive(false);
+    clearAlphaClasses();
+    window.clearTimeout(letterCharmTimer);
+    casting = true;
+    castPose = 'melinoe';
+    root.classList.remove('arc-melinoe');
+    void root.offsetWidth;
+    root.classList.add('arc-melinoe');
+    syncPose();
+    showBubble('By the Moon!');
+    if (!reducedMotion()) {
+      const cast = document.createElement('span');
+      cast.className = 'ml-cast';
+      pillspot.appendChild(cast);
+      window.setTimeout(() => cast.remove(), 1850);
+      const slash1 = document.createElement('span');
+      slash1.className = 'ml-slash';
+      pillspot.appendChild(slash1);
+      window.setTimeout(() => slash1.remove(), 1850);
+      const slash2 = document.createElement('span');
+      slash2.className = 'ml-slash two';
+      pillspot.appendChild(slash2);
+      window.setTimeout(() => slash2.remove(), 1850);
+      const moon = document.createElement('span');
+      moon.className = 'ml-moon';
+      moon.innerHTML = moonSVG();
+      pillspot.appendChild(moon);
+      window.setTimeout(() => moon.remove(), 1900);
+      for (let i = 0; i < 10; i++) {
+        const m = document.createElement('span');
+        m.className = 'ml-mote';
+        m.style.left = `${14 + i * 5}px`;
+        m.style.bottom = `calc(100% - ${2 + (i % 4) * 7}px)`;
+        m.style.setProperty('--d', `${(0.3 + Math.random() * 0.7).toFixed(2)}s`);
+        m.style.setProperty('--x', `${(i - 5) * 4}px`);
+        m.style.setProperty('--y', `${(-16 - Math.random() * 16).toFixed(0)}px`);
+        pillspot.appendChild(m);
+        window.setTimeout(() => m.remove(), 1900);
+      }
+    }
+    letterCharmTimer = window.setTimeout(() => {
+      casting = false;
+      clearAlphaClasses();
+      syncPose();
+      scheduleIdle();
+    }, 1700);
   };
 
   // Z — Zenitsu's Seventh Form: Flaming Thunder God.
@@ -2685,6 +3255,16 @@ export function createPill(opts: PillOptions): PillUI {
       x: fireExodia,
       y: fireKillerQueen,
       z: fireZenitsu,
+      '0': fireDredge,
+      '1': fireDiver,
+      '2': fireHollowKnight,
+      '3': fireSans,
+      '4': fireBalatro,
+      '5': fireCuphead,
+      '6': fireCeleste,
+      '7': fireStardew,
+      '8': fireShovel,
+      '9': fireMelinoe,
     };
     const action = actions[k];
     if (!action) return;

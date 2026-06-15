@@ -5125,3 +5125,809 @@
     animation: none !important;
   }
 }
+
+/* ===========================================================================
+   MEMOKO — INDIE ARCADE 0–9 (appended; gear is worn via her sprite pose)
+   =========================================================================== */
+
+.root.arc-dredge .trk, .root.arc-dredge .flip,
+.root.arc-diver .trk,  .root.arc-diver .flip,
+.root.arc-knight .trk, .root.arc-knight .flip,
+.root.arc-sans .trk,   .root.arc-sans .flip,
+.root.arc-balatro .trk,.root.arc-balatro .flip,
+.root.arc-cuphead .trk,.root.arc-cuphead .flip,
+.root.arc-celeste .trk,.root.arc-celeste .flip,
+.root.arc-stardew .trk,.root.arc-stardew .flip,
+.root.arc-shovel .trk, .root.arc-shovel .flip,
+.root.arc-melinoe .trk,  .root.arc-melinoe .flip {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* ============================================================ 0 · DREDGE === */
+.root.arc-dredge .pop { animation: mk-dr-body 2s cubic-bezier(0.3,0.1,0.3,1) both; }
+.root.arc-dredge .pill { animation: mk-dr-glow 2s ease-out both; }
+@keyframes mk-dr-body {            /* cast, wait, then a jerk + reel-back */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  14% { transform: translate(2px,-1px) rotate(3deg); }     /* cast */
+  24% { transform: translate(0,0) rotate(0deg); }
+  60% { transform: translate(1px,1px); }                   /* bob, wait */
+  66% { transform: translate(-2px,-1px) rotate(-4deg); }   /* bite! */
+  74% { transform: translate(-3px,-1px) rotate(-3deg); }   /* reel up */
+  88% { transform: translate(-1px,0); }
+}
+@keyframes mk-dr-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  70% { border-color: #2c5a55; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 22px rgba(60,120,110,.6); }
+}
+.dr-boat {
+  position: absolute;
+  left: 2px; bottom: calc(100% - 16px);
+  z-index: 1;                 /* she sits in it */
+  pointer-events: none; opacity: 0;
+  animation: mk-dr-boat 2s ease-out both;
+}
+@keyframes mk-dr-boat {
+  0% { opacity: 0; transform: translateY(6px); }
+  12% { opacity: 1; transform: translateY(0); }
+  40% { transform: translateY(1px) rotate(-1deg); }
+  60% { transform: translateY(-1px) rotate(1deg); }
+  88% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+.dr-line {                        /* the fishing line out to the right */
+  position: absolute;
+  left: 44px; bottom: calc(100% + 2px);
+  width: 2px; height: 30px;
+  background: linear-gradient(180deg, rgba(220,230,235,.8), rgba(180,200,205,.3));
+  transform-origin: 50% 0%;
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-dr-line 2s ease-out both;
+}
+@keyframes mk-dr-line {
+  0% { opacity: 0; transform: scaleY(0.2) rotate(8deg); }
+  16% { opacity: 1; transform: scaleY(1) rotate(8deg); }
+  56% { transform: scaleY(1) rotate(8deg) translateY(2px); }
+  64% { transform: scaleY(1.1) rotate(6deg); }   /* tug */
+  66% { transform: scaleY(0.95) rotate(10deg); }
+  78% { opacity: 1; transform: scaleY(0.5) rotate(4deg); } /* reeled */
+  100% { opacity: 0; transform: scaleY(0.3) rotate(2deg); }
+}
+.dr-relic {                       /* the eyeball relic pulled up */
+  position: absolute;
+  left: 40px; bottom: calc(100% + 4px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  filter: drop-shadow(0 0 5px rgba(140,240,208,.5));
+  animation: mk-dr-relic 2s cubic-bezier(0.3,0.6,0.3,1) both;
+}
+@keyframes mk-dr-relic {
+  0%, 58% { opacity: 0; transform: translateY(26px) scale(0.8); }
+  68% { opacity: 1; transform: translateY(8px) scale(1.05); }   /* breaks surface */
+  80% { transform: translateY(-2px) scale(1); }
+  84% { transform: translateY(-2px) rotate(-3deg); }
+  90% { transform: translateY(-2px) rotate(3deg); }
+  96% { opacity: 1; transform: translateY(-2px); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+.dr-drip {
+  position: absolute;
+  width: 2px; height: 4px;
+  background: #8ff0d0;
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-dr-drip 0.7s steps(4,end) both;
+  animation-delay: var(--d, 1.2s);
+}
+@keyframes mk-dr-drip {
+  0% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(var(--y,10px)); }
+}
+
+/* ============================================================= 1 · DIVER === */
+.root.arc-diver .pop { animation: mk-dv-body 1.7s cubic-bezier(0.3,0.05,0.2,1) both; }
+.root.arc-diver .pill { animation: mk-dv-glow 1.7s ease-out both; }
+@keyframes mk-dv-body {            /* drop in, aim, fire recoil */
+  0% { transform: translate(0,0) rotate(0deg); }
+  16% { transform: translate(0,3px) scale(1.04,0.95); }    /* splash-in */
+  30% { transform: translate(0,0) scale(1); }
+  48% { transform: translate(2px,0) rotate(2deg); }        /* aim */
+  58% { transform: translate(-3px,0) rotate(-3deg); }      /* harpoon recoil */
+  74% { transform: translate(-1px,0); }
+  100% { transform: translate(0,0) rotate(0deg); }
+}
+@keyframes mk-dv-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  40% { border-color: #2f9bd6; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 22px rgba(47,155,214,.6); }
+}
+.dv-goggles {
+  position: absolute;
+  left: 18px; bottom: calc(100% + 14px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  animation: mk-dv-goggles 1.7s ease-out both;
+}
+@keyframes mk-dv-goggles {
+  0% { opacity: 0; transform: translateY(-4px); }
+  14% { opacity: 1; transform: translateY(0); }
+  84% { opacity: 1; } 100% { opacity: 0; }
+}
+.dv-harpoon {
+  position: absolute;
+  left: 34px; bottom: calc(100% + 7px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  transform-origin: 0% 50%;
+  animation: mk-dv-harpoon 0.7s cubic-bezier(0.2,0.8,0.3,1) both;
+  animation-delay: 0.52s;
+}
+@keyframes mk-dv-harpoon {
+  0% { opacity: 0; transform: translateX(-6px) scaleX(0.5); }
+  30% { opacity: 1; transform: translateX(0) scaleX(1); }
+  100% { opacity: 0; transform: translateX(60px) scaleX(1.2); }
+}
+.dv-fish {
+  position: absolute;
+  left: 60px; bottom: calc(100% + 18px);
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-dv-fish 1.1s ease-in both;
+  animation-delay: 0.2s;
+}
+@keyframes mk-dv-fish {
+  0% { opacity: 0; transform: translateX(20px); }
+  20% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateX(-70px); }
+}
+.dv-bub {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(180,225,255,.5);
+  box-shadow: inset 0 0 0 1px rgba(120,200,240,.8);
+  z-index: 2; pointer-events: none; opacity: 0;
+  transform: scale(var(--s,1));
+  animation: mk-dv-bub 1.2s ease-out both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-dv-bub {
+  0% { opacity: 0; transform: translateY(0) scale(var(--s,1)); }
+  24% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(var(--y,-20px)) scale(var(--s,1)); }
+}
+
+/* ============================================================ 2 · KNIGHT === */
+.root.arc-knight .pop { animation: mk-hk-body 1.6s cubic-bezier(0.3,0.05,0.22,1) both; }
+.root.arc-knight .pill { animation: mk-hk-glow 1.6s ease-out both; }
+@keyframes mk-hk-body {            /* nail raise, clean downward slash */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  24% { transform: translate(-2px,1px) rotate(-9deg) scale(1.05,0.94); }
+  42% { transform: translate(5px,-1px) rotate(11deg) scale(0.94,1.07); }
+  56% { transform: translate(1px,0) rotate(3deg); }
+  72% { transform: translate(0,0) rotate(0deg); }
+}
+@keyframes mk-hk-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  46% { border-color: #e9eef5; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 20px rgba(220,235,250,.6); }
+}
+.hk-cloak {                        /* the Knight silhouette overlaid on her */
+  position: absolute;
+  left: 9px; bottom: calc(100% - 8px);
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-hk-cloak 1.6s ease-out both;
+}
+@keyframes mk-hk-cloak {
+  0% { opacity: 0; transform: translateY(4px) scale(0.9); }
+  16% { opacity: 0.92; transform: translateY(0) scale(1); }
+  84% { opacity: 0.92; } 100% { opacity: 0; }
+}
+.hk-slash {                        /* clean white nail arc */
+  position: absolute;
+  left: 38px; bottom: calc(100% + 2px);
+  width: 46px; height: 50px;
+  z-index: 4; pointer-events: none; opacity: 0;
+  background: linear-gradient(125deg, transparent 44%, #ffffff 49%, #cfe0ee 53%, transparent 60%);
+  -webkit-mask: linear-gradient(125deg, transparent 44%, #000 49%, #000 55%, transparent 61%);
+          mask: linear-gradient(125deg, transparent 44%, #000 49%, #000 55%, transparent 61%);
+  transform-origin: 0% 50%;
+  animation: mk-hk-slash 0.55s cubic-bezier(0.2,0.8,0.3,1) both;
+  animation-delay: 0.4s;
+}
+@keyframes mk-hk-slash {
+  0% { opacity: 0; transform: translateX(-8px) scaleX(0.3) rotate(-6deg); }
+  34% { opacity: 1; transform: translateX(0) scaleX(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateX(24px) scaleX(1.2) rotate(4deg); }
+}
+.hk-mote {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #eaf4ff;
+  box-shadow: 0 0 5px rgba(200,225,255,.9);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-hk-mote 1.2s ease-out both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-hk-mote {
+  0% { opacity: 0; transform: translate(0,4px); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x,0), var(--y,-20px)); }
+}
+
+/* ============================================================== 3 · SANS === */
+.root.arc-sans .pop { animation: mk-sn-body 1.9s cubic-bezier(0.3,0.1,0.3,1) both; }
+.root.arc-sans .pill { animation: mk-sn-glow 1.9s ease-out both; }
+@keyframes mk-sn-body {            /* lazy shrug, a small nod toward the blast */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  20% { transform: translate(0,1px) scale(1.02,0.98); }
+  40% { transform: translate(-1px,0) rotate(-2deg); }
+  64% { transform: translate(1px,0) rotate(1deg); }
+}
+@keyframes mk-sn-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  16%, 60% { border-color: #36b6ff; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 22px rgba(54,182,255,.6); }
+}
+.sn-eye {                          /* the cyan flashing eye glow over her face */
+  position: absolute;
+  left: 23px; bottom: calc(100% + 14px);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #6fe0ff;
+  box-shadow: 0 0 9px 2px rgba(54,182,255,.9);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-sn-eye 1.9s ease-out both;
+}
+@keyframes mk-sn-eye {
+  0% { opacity: 0; }
+  10% { opacity: 1; } 18% { opacity: 0.4; } 26% { opacity: 1; }
+  80% { opacity: 1; } 100% { opacity: 0; }
+}
+.sn-bone {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-sn-bone 1s cubic-bezier(0.3,0.6,0.3,1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-sn-bone {
+  0% { opacity: 0; transform: translateY(20px); }
+  30% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+.sn-blaster {
+  position: absolute;
+  left: 30px; bottom: calc(100% + 16px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  transform-origin: 0% 50%;
+  filter: drop-shadow(0 0 5px rgba(120,200,255,.6));
+  animation: mk-sn-blaster 1.9s cubic-bezier(0.2,0.8,0.3,1) both;
+  animation-delay: 0.7s;
+}
+@keyframes mk-sn-blaster {
+  0% { opacity: 0; transform: translateX(-8px) rotate(-12deg) scale(0.7); }
+  16% { opacity: 1; transform: translateX(0) rotate(0deg) scale(1.05); }
+  24% { transform: scale(1); }
+  40% { transform: translateX(0) scale(1); }
+  60% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(2px) scale(0.95); }
+}
+.sn-beam {
+  position: absolute;
+  left: 54px; bottom: calc(100% + 17px);
+  width: 64px; height: 12px;
+  transform-origin: left center;
+  background: linear-gradient(180deg, transparent, #dff4ff 30%, #6fd0ff 50%, #dff4ff 70%, transparent);
+  box-shadow: 0 0 14px rgba(80,180,255,.8);
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-sn-beam 0.7s cubic-bezier(0.2,0.8,0.3,1) both;
+  animation-delay: 1.0s;
+}
+@keyframes mk-sn-beam {
+  0% { opacity: 0; transform: scaleX(0.04) scaleY(0.3); }
+  30% { opacity: 1; transform: scaleX(1) scaleY(1); }
+  70% { opacity: 1; transform: scaleX(1) scaleY(1); }
+  100% { opacity: 0; transform: scaleX(1) scaleY(0.2); }
+}
+
+/* =========================================================== 4 · BALATRO === */
+.root.arc-balatro .pop { animation: mk-bl-body 1.7s cubic-bezier(0.3,0.05,0.2,1) both; }
+.root.arc-balatro .pill { animation: mk-bl-glow 1.7s ease-out both; }
+@keyframes mk-bl-body {            /* shuffle bob, then throw the hand forward */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  20% { transform: translate(-1px,-1px) rotate(-3deg); }
+  44% { transform: translate(5px,0) rotate(8deg) scale(0.95,1.05); }
+  60% { transform: translate(1px,0) rotate(2deg); }
+}
+@keyframes mk-bl-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  50% { border-color: #ff9a2a; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 24px rgba(255,154,42,.6); }
+}
+.bl-card {
+  position: absolute;
+  left: 34px; bottom: calc(100% + 4px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.35));
+  animation: mk-bl-card 1s cubic-bezier(0.2,0.8,0.3,1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-bl-card {
+  0% { opacity: 0; transform: translate(-14px,6px) rotate(-40deg) scale(0.6); }
+  40% { opacity: 1; transform: translate(var(--tx,0), -4px) rotate(var(--r,0deg)) scale(1.05); }
+  62% { transform: translate(var(--tx,0), 0) rotate(var(--r,0deg)) scale(1); }
+  84% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--tx,0), -3px) rotate(var(--r,0deg)); }
+}
+.bl-mult {
+  position: absolute;
+  left: 50px; bottom: calc(100% + 22px);
+  font-family: var(--mono); font-size: 14px; font-weight: 900;
+  color: #ff5a3a;
+  text-shadow: -1px 0 #fff, 1px 0 #fff, 0 1px #fff, 0 -1px #fff;
+  z-index: 6; pointer-events: none; opacity: 0;
+  animation: mk-bl-mult 1.1s cubic-bezier(0.34,1.6,0.5,1) both;
+  animation-delay: 0.5s;
+}
+@keyframes mk-bl-mult {
+  0% { opacity: 0; transform: scale(0.3); }
+  40% { opacity: 1; transform: scale(1.3); }
+  60% { transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1) translateY(-6px); }
+}
+.bl-chip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #3a7bd6;
+  box-shadow: inset 0 0 0 1px #cfe0ff, 0 0 0 1px #143a5a;
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-bl-chip 1.1s cubic-bezier(0.3,0.6,0.3,1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-bl-chip {
+  0% { opacity: 0; transform: translate(0,8px); }
+  30% { opacity: 1; transform: translate(var(--x,0), -10px); }
+  60% { transform: translate(var(--x,0), 0); }
+  100% { opacity: 0; transform: translate(var(--x,0), -4px); }
+}
+
+/* =========================================================== 5 · CUPHEAD === */
+.root.arc-cuphead .pop { animation: mk-cup-body 1.6s cubic-bezier(0.34,1.2,0.5,1) both; }
+.root.arc-cuphead .pill { animation: mk-cup-glow 1.6s ease-out both; }
+@keyframes mk-cup-body {           /* rubber-hose bounce + recoil pops */
+  0%, 100% { transform: translateY(0) scale(1); }
+  16% { transform: translateY(-5px) scale(0.93,1.1); }
+  30% { transform: translateY(0) scale(1.08,0.92); }
+  44% { transform: translateY(-2px) scale(0.98,1.03); }
+  52% { transform: translate(-2px,0) rotate(-2deg); }  /* shot kick */
+  64% { transform: translate(1px,0) scale(1.02,0.98); }
+  78% { transform: translateY(0) scale(1); }
+}
+@keyframes mk-cup-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  50% { border-color: #ff5db0; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 22px rgba(255,93,176,.55); }
+}
+.cup-pellet {
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px #d24a8a, 0 0 5px rgba(255,150,200,.8);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-cup-pellet 0.7s steps(5,end) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-cup-pellet {
+  0% { opacity: 0; transform: translate(0,0) scale(0.6); }
+  24% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: translate(var(--x,40px), var(--y,0)) scale(0.8); }
+}
+.cup-iris {                        /* cartoon iris-circle wipe */
+  position: absolute;
+  left: -6px; right: -6px; top: -42px; bottom: -6px;
+  z-index: 6; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 50% 70%, transparent 0 30%, rgba(20,12,16,.82) 34%);
+  animation: mk-cup-iris 0.9s cubic-bezier(0.5,0,0.4,1) both;
+  animation-delay: 0.85s;
+}
+@keyframes mk-cup-iris {
+  0% { opacity: 0; background-size: 400% 400%; background-position: center; }
+  30% { opacity: 1; background-size: 70% 70%; }
+  62% { opacity: 1; background-size: 70% 70%; }
+  100% { opacity: 0; background-size: 400% 400%; }
+}
+.cup-star {
+  position: absolute;
+  left: 22px; bottom: calc(100% + 16px);
+  z-index: 7; pointer-events: none; opacity: 0;
+  animation: mk-cup-star 0.8s cubic-bezier(0.34,1.6,0.5,1) both;
+  animation-delay: 1.05s;
+}
+@keyframes mk-cup-star {
+  0% { opacity: 0; transform: scale(0.2) rotate(-40deg); }
+  44% { opacity: 1; transform: scale(1.25) rotate(0deg); }
+  64% { transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1) rotate(20deg); }
+}
+
+/* =========================================================== 6 · CELESTE === */
+/* Madeline's dash: hair flashes red while dashing. */
+.root.arc-celeste .flip { --mk-hair: #ff4d5e; --mk-hair-pale: #ff8a96; }
+.root.arc-celeste .pop { animation: mk-cl-body 1.6s cubic-bezier(0.3,0.04,0.2,1) both; }
+.root.arc-celeste .pill { animation: mk-cl-glow 1.6s ease-out both; }
+@keyframes mk-cl-body {            /* crouch coil, explosive diagonal dash, land */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  20% { transform: translate(2px,3px) rotate(2deg) scale(1.05,0.9); }   /* crouch */
+  36% { transform: translate(-8px,-6px) rotate(-10deg) scale(0.9,1.12); } /* dash up-left */
+  50% { transform: translate(-3px,-1px) rotate(-3deg); }
+  64% { transform: translate(0,2px) scale(1.04,0.95); }  /* land */
+  78% { transform: translate(0,0) scale(1); }
+}
+@keyframes mk-cl-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  40% { border-color: #5b8cff; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 22px rgba(91,140,255,.6); }
+}
+.cl-trail {                        /* diagonal blue/red dash streak */
+  position: absolute;
+  left: 18px; bottom: calc(100% - 6px);
+  width: 44px; height: 10px;
+  transform-origin: 100% 50%;
+  background: linear-gradient(90deg, transparent, rgba(91,140,255,.85) 40%, rgba(255,77,109,.85) 70%, transparent);
+  z-index: 2; pointer-events: none; opacity: 0;
+  animation: mk-cl-trail 0.6s ease-out both;
+  animation-delay: 0.34s;
+}
+@keyframes mk-cl-trail {
+  0% { opacity: 0; transform: rotate(-32deg) scaleX(0.2); }
+  30% { opacity: 1; transform: rotate(-32deg) scaleX(1); }
+  100% { opacity: 0; transform: rotate(-32deg) scaleX(1) translateX(-12px); }
+}
+.cl-berry {
+  position: absolute;
+  left: 6px; bottom: calc(100% + 14px);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-cl-berry 1s cubic-bezier(0.34,1.5,0.5,1) both;
+  animation-delay: 0.5s;
+}
+@keyframes mk-cl-berry {
+  0% { opacity: 0; transform: translateY(4px) scale(0.5); }
+  40% { opacity: 1; transform: translateY(0) scale(1.1); }
+  60% { transform: scale(1); }
+  100% { opacity: 0; transform: translateY(-6px) scale(0.9); }
+}
+.cl-dust {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--c, #5b8cff);
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-cl-dust 0.7s steps(4,end) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-cl-dust {
+  0% { opacity: 0; transform: translate(0,0); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x,-10px), -4px); }
+}
+
+/* =========================================================== 7 · STARDEW === */
+.root.arc-stardew .pop { animation: mk-sv-body 1.8s cubic-bezier(0.3,0.1,0.3,1) both; }
+.root.arc-stardew .pill { animation: mk-sv-glow 1.8s ease-out both; }
+@keyframes mk-sv-body {            /* tip the can, then a happy harvest bob */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  22% { transform: translate(1px,1px) rotate(4deg); }   /* pour */
+  40% { transform: translate(0,0) rotate(0deg); }
+  64% { transform: translate(0,-3px) scale(1.03,0.97); } /* harvest pop */
+  78% { transform: translate(0,0) scale(1); }
+}
+@keyframes mk-sv-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  60% { border-color: #5cbf52; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 20px rgba(92,191,82,.6); }
+}
+.sv-hat {
+  position: absolute;
+  left: 18px; bottom: calc(100% + 12px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  animation: mk-sv-hat 1.8s ease-out both;
+}
+@keyframes mk-sv-hat {
+  0% { opacity: 0; transform: translateY(-5px); }
+  12% { opacity: 1; transform: translateY(0); }
+  88% { opacity: 1; } 100% { opacity: 0; }
+}
+.sv-water {                        /* the water arc from the can */
+  position: absolute;
+  left: 40px; bottom: calc(100% + 4px);
+  width: 14px; height: 14px;
+  border-right: 2px solid rgba(120,200,240,.7);
+  border-radius: 0 80% 0 0;
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-sv-water 0.6s ease-out both;
+  animation-delay: 0.2s;
+}
+@keyframes mk-sv-water {
+  0% { opacity: 0; } 30% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; }
+}
+.sv-crop {
+  position: absolute;
+  left: 40px; bottom: calc(100% + 1px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  transform-origin: 50% 100%;
+  animation: mk-sv-crop 1.8s cubic-bezier(0.34,1.4,0.5,1) both;
+  animation-delay: 0.4s;
+}
+@keyframes mk-sv-crop {
+  0%, 22% { opacity: 0; transform: scaleY(0.1); }
+  40% { opacity: 1; transform: scaleY(1.1); }
+  52% { transform: scaleY(1); }
+  86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.sv-star {
+  position: absolute;
+  left: 40px; bottom: calc(100% + 22px);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-sv-star 0.9s cubic-bezier(0.34,1.6,0.5,1) both;
+  animation-delay: 1.0s;
+}
+@keyframes mk-sv-star {
+  0% { opacity: 0; transform: scale(0.2) rotate(-30deg); }
+  44% { opacity: 1; transform: scale(1.25) rotate(0deg); }
+  64% { transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1) translateY(-5px); }
+}
+.sv-drop {
+  position: absolute;
+  width: 2px; height: 4px;
+  background: #7fd0f0;
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-sv-drop 0.6s steps(3,end) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-sv-drop {
+  0% { opacity: 0; transform: translateY(-4px); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+/* ============================================================ 8 · SHOVEL === */
+.root.arc-shovel .pop { animation: mk-sk-body 1.6s cubic-bezier(0.34,0.1,0.3,1) both; }
+.root.arc-shovel .pill { animation: mk-sk-glow 1.6s ease-out both; }
+@keyframes mk-sk-body {            /* crouch, spring up, pogo-stomp, rebound, second bounce */
+  0% { transform: translateY(0) scale(1); }
+  10% { transform: translateY(3px) scale(1.07,0.9); }     /* load crouch */
+  24% { transform: translateY(-10px) scale(0.93,1.12); }  /* spring up */
+  34% { transform: translateY(3px) scale(1.12,0.86); }    /* pogo stomp 1 */
+  47% { transform: translateY(-7px) scale(0.95,1.08); }   /* rebound up */
+  57% { transform: translateY(2px) scale(1.07,0.92); }    /* stomp 2 */
+  68% { transform: translateY(-2px) scale(0.99,1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes mk-sk-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  34% { border-color: #4a8fd6; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 22px rgba(74,143,214,.6); }
+}
+.sk-glint {
+  position: absolute;
+  left: 20px; bottom: calc(100% + 6px);
+  width: 6px; height: 6px;
+  background: #fff;
+  box-shadow: 0 0 8px 2px rgba(180,220,255,.9);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-sk-glint 0.6s steps(3,end) both;
+}
+@keyframes mk-sk-glint {
+  0% { opacity: 0; transform: scale(0.4); }
+  40% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(0.6); }
+}
+.sk-shovel {                       /* held blade-down, bounces with her */
+  position: absolute;
+  left: 27px; bottom: calc(100% - 20px);
+  z-index: 4; pointer-events: none; opacity: 0;
+  transform-origin: 50% 0%;
+  animation: mk-sk-shovel 1.6s cubic-bezier(0.34,0.1,0.3,1) both;
+}
+@keyframes mk-sk-shovel {
+  0% { opacity: 0; transform: translateY(-4px); }
+  8% { opacity: 1; transform: translateY(1px); }
+  24% { transform: translateY(-10px); }   /* up with her */
+  34% { transform: translateY(3px); }      /* stomp 1 */
+  47% { transform: translateY(-7px); }     /* rebound */
+  57% { transform: translateY(2px); }      /* stomp 2 */
+  68% { transform: translateY(0); }
+  88% { opacity: 1; } 100% { opacity: 0; }
+}
+.sk-burst {                        /* impact dust under the shovel tip */
+  position: absolute;
+  left: 18px; bottom: calc(100% - 18px);
+  width: 28px; height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(220,230,240,.85), transparent 70%);
+  z-index: 2; pointer-events: none; opacity: 0;
+  animation: mk-sk-burst 0.45s ease-out both;
+  animation-delay: 0.5s;
+}
+.sk-burst.two { animation-delay: 0.86s; }
+@keyframes mk-sk-burst {
+  0% { opacity: 0; transform: scaleX(0.4) scaleY(0.6); }
+  40% { opacity: 1; transform: scaleX(1.4) scaleY(1.1); }
+  100% { opacity: 0; transform: scaleX(2) scaleY(0.6); }
+}
+.sk-redgem {                       /* the prized red gem launched on the stomp */
+  position: absolute;
+  left: 26px; bottom: calc(100% - 10px);
+  z-index: 6; pointer-events: none; opacity: 0;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 5px rgba(255,70,90,.7));
+  animation: mk-sk-redgem 1.05s cubic-bezier(0.25,0.6,0.35,1) both;
+  animation-delay: 0.52s;
+}
+@keyframes mk-sk-redgem {
+  0% { opacity: 0; transform: translate(0,4px) scale(0.5); }
+  20% { opacity: 1; transform: translate(7px,-20px) scale(1.7); }   /* erupts up */
+  46% { transform: translate(14px,-26px) scale(1.5) rotate(160deg); } /* apex spin */
+  72% { opacity: 1; transform: translate(22px,-10px) scale(1.4) rotate(300deg); }
+  100% { opacity: 0; transform: translate(30px,8px) scale(1.2) rotate(360deg); } /* falls right */
+}
+.sk-gem {
+  position: absolute;
+  bottom: calc(100% - 12px);
+  z-index: 5; pointer-events: none; opacity: 0;
+  animation: mk-sk-gem 0.95s cubic-bezier(0.3,0.6,0.3,1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-sk-gem {
+  0% { opacity: 0; transform: translate(0,2px) scale(0.6); }
+  26% { opacity: 1; transform: translate(var(--x,0), var(--y,-14px)) scale(1); }
+  58% { transform: translate(calc(var(--x,0) * 1.25), 2px); }
+  100% { opacity: 0; transform: translate(calc(var(--x,0) * 1.4), 6px); }
+}
+
+/* ========================================================== 9 · MELINOË === */
+.root.arc-melinoe .pop { animation: mk-ml-body 1.85s cubic-bezier(0.3,0.06,0.2,1) both; }
+.root.arc-melinoe .pill { animation: mk-ml-glow 1.85s ease-out both; }
+@keyframes mk-ml-body {            /* witch's casting flourish: plant, thrust the Cast, blade sweep, settle */
+  0%, 100% { transform: translate(0,0) rotate(0deg); }
+  16% { transform: translate(-3px,1px) rotate(-5deg) scale(1.04,0.95); }   /* draw back */
+  32% { transform: translate(5px,-1px) rotate(7deg) scale(0.95,1.06); }    /* thrust the Cast */
+  48% { transform: translate(2px,0) rotate(2deg); }
+  62% { transform: translate(-2px,0) rotate(-3deg); }                       /* blade sweep back */
+  78% { transform: translate(1px,0) rotate(1deg); }
+}
+@keyframes mk-ml-glow {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--hp) 45%, var(--border));
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 12px color-mix(in srgb, var(--hp) 22%, transparent);
+  }
+  40% { border-color: #5fe0c4; box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 26px rgba(95,224,196,.6), 0 0 10px rgba(200,220,235,.4); }
+}
+/* the Cast — a teal moon-sigil ring that blooms out (Melinoë's signature) */
+.ml-cast {
+  position: absolute;
+  left: 30px; bottom: calc(100% - 6px);
+  width: 30px; height: 30px;
+  margin: 0 0 -15px -15px;
+  border-radius: 50%;
+  border: 2px solid #5fe0c4;
+  box-shadow: 0 0 12px rgba(95,224,196,.6), inset 0 0 8px rgba(95,224,196,.4);
+  z-index: 4; pointer-events: none; opacity: 0;
+  animation: mk-ml-cast 1.2s cubic-bezier(0.2,0.7,0.3,1) both;
+  animation-delay: 0.34s;
+}
+.ml-cast::before {                 /* inner sigil ring */
+  content: ""; position: absolute; inset: 5px;
+  border-radius: 50%;
+  border: 1px solid rgba(234,255,248,.85);
+}
+.ml-cast::after {                  /* sigil tick marks */
+  content: ""; position: absolute; inset: -3px;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 0deg, #eafff8 0deg 3deg, transparent 3deg 45deg);
+  -webkit-mask: radial-gradient(circle, transparent 14px, #000 15px, #000 17px, transparent 18px);
+          mask: radial-gradient(circle, transparent 14px, #000 15px, #000 17px, transparent 18px);
+  opacity: 0.9;
+}
+@keyframes mk-ml-cast {
+  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  24% { opacity: 1; transform: scale(1) rotate(40deg); }
+  62% { opacity: 0.9; transform: scale(2.2) rotate(120deg); }
+  100% { opacity: 0; transform: scale(2.7) rotate(160deg); }
+}
+/* twin Sister Blade slashes — crossing silver crescents */
+.ml-slash {
+  position: absolute;
+  left: 40px; bottom: calc(100% + 2px);
+  width: 48px; height: 50px;
+  z-index: 5; pointer-events: none; opacity: 0;
+  background: linear-gradient(120deg, transparent 44%, #f4ffff 49%, #9fe8d8 53%, transparent 60%);
+  -webkit-mask: linear-gradient(120deg, transparent 44%, #000 49%, #000 55%, transparent 61%);
+          mask: linear-gradient(120deg, transparent 44%, #000 49%, #000 55%, transparent 61%);
+  transform-origin: 0% 50%;
+  filter: drop-shadow(0 0 4px rgba(150,230,215,.6));
+  animation: mk-ml-slash 0.5s cubic-bezier(0.2,0.8,0.3,1) both;
+  animation-delay: 0.5s;
+}
+.ml-slash.two {
+  background: linear-gradient(60deg, transparent 44%, #f4ffff 49%, #c9d6e2 53%, transparent 60%);
+  -webkit-mask: linear-gradient(60deg, transparent 44%, #000 49%, #000 55%, transparent 61%);
+          mask: linear-gradient(60deg, transparent 44%, #000 49%, #000 55%, transparent 61%);
+  animation-delay: 0.64s;
+}
+@keyframes mk-ml-slash {
+  0% { opacity: 0; transform: translateX(-8px) scaleX(0.3) rotate(-5deg); }
+  36% { opacity: 1; transform: translateX(0) scaleX(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateX(20px) scaleX(1.2) rotate(4deg); }
+}
+/* a crescent moon rising behind her */
+.ml-moon {
+  position: absolute;
+  left: 8px; bottom: calc(100% + 12px);
+  z-index: 1; pointer-events: none; opacity: 0;
+  filter: drop-shadow(0 0 6px rgba(180,235,222,.7));
+  animation: mk-ml-moon 1.85s ease-out both;
+}
+@keyframes mk-ml-moon {
+  0% { opacity: 0; transform: translateY(6px) scale(0.7); }
+  20% { opacity: 1; transform: translateY(0) scale(1.05); }
+  30% { transform: scale(1); }
+  82% { opacity: 1; } 100% { opacity: 0; transform: translateY(-3px); }
+}
+/* drifting silver/teal moon motes */
+.ml-mote {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #d6f4ec;
+  box-shadow: 0 0 6px rgba(120,225,205,.95);
+  z-index: 3; pointer-events: none; opacity: 0;
+  animation: mk-ml-mote 1.2s ease-out both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes mk-ml-mote {
+  0% { opacity: 0; transform: translate(0,4px); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x,0), var(--y,-22px)); }
+}
+
+/* ========================================================= reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .root.arc-dredge .pop, .root.arc-dredge .pill, .dr-boat, .dr-line, .dr-relic, .dr-drip,
+  .root.arc-diver .pop, .root.arc-diver .pill, .dv-goggles, .dv-harpoon, .dv-fish, .dv-bub,
+  .root.arc-knight .pop, .root.arc-knight .pill, .hk-cloak, .hk-slash, .hk-mote,
+  .root.arc-sans .pop, .root.arc-sans .pill, .sn-eye, .sn-bone, .sn-blaster, .sn-beam,
+  .root.arc-balatro .pop, .root.arc-balatro .pill, .bl-card, .bl-mult, .bl-chip,
+  .root.arc-cuphead .pop, .root.arc-cuphead .pill, .cup-pellet, .cup-iris, .cup-star,
+  .root.arc-celeste .pop, .root.arc-celeste .pill, .cl-trail, .cl-berry, .cl-dust,
+  .root.arc-stardew .pop, .root.arc-stardew .pill, .sv-hat, .sv-water, .sv-crop, .sv-star, .sv-drop,
+  .root.arc-shovel .pop, .root.arc-shovel .pill, .sk-glint, .sk-shovel, .sk-burst, .sk-redgem, .sk-gem,
+  .root.arc-melinoe .pop, .root.arc-melinoe .pill, .ml-cast, .ml-slash, .ml-moon, .ml-mote {
+    animation: none !important;
+  }
+}
