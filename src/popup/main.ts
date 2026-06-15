@@ -1,5 +1,6 @@
 import {
   budgetFor,
+  clearAllData,
   DEFAULT_SETTINGS,
   loadAdapterHealth,
   loadSettings,
@@ -135,6 +136,33 @@ async function init(): Promise<void> {
   document.getElementById('reset')?.addEventListener('click', () => {
     populate(structuredClone(DEFAULT_SETTINGS));
     void save();
+  });
+
+  // Destructive — wipes settings AND all per-chat token ledgers. Two-click
+  // confirm (no native confirm() in a popup) so it can't fire by accident.
+  const clearBtn = document.getElementById('cleardata');
+  let armed = false;
+  let armTimer: ReturnType<typeof setTimeout> | null = null;
+  clearBtn?.addEventListener('click', () => {
+    if (!armed) {
+      armed = true;
+      clearBtn.textContent = 'Click again to confirm';
+      clearBtn.classList.add('armed');
+      armTimer = setTimeout(() => {
+        armed = false;
+        clearBtn.textContent = 'Clear all data';
+        clearBtn.classList.remove('armed');
+      }, 3000);
+      return;
+    }
+    if (armTimer !== null) clearTimeout(armTimer);
+    armed = false;
+    clearBtn.textContent = 'Clear all data';
+    clearBtn.classList.remove('armed');
+    void clearAllData().then(() => {
+      populate(structuredClone(DEFAULT_SETTINGS));
+      flash('All data cleared ✓');
+    });
   });
 }
 

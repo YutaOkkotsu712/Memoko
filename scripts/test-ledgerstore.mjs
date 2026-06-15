@@ -5,8 +5,11 @@ import {
   serializeLedger,
   deserializeLedger,
   planEviction,
+  planExpiry,
   indexedKeysForLedgerKeys,
 } from '../src/core/ledgerStore.ts';
+
+const DAY = 24 * 60 * 60 * 1000;
 
 const mk = (pairs) => new Map(pairs.map(([id, role, tokens]) => [id, { role, tokens }]));
 
@@ -68,6 +71,23 @@ const cases = [
       const evict = planEviction(metas, 1000); // total 1800, cap 1000 → drop oldest
       return evict[0] === 'old' && evict.includes('mid') && !evict.includes('new');
     },
+  },
+  {
+    name: 'expiry: drops only chats untouched beyond the TTL',
+    run: () => {
+      const now = 100 * DAY;
+      const metas = [
+        { key: 'fresh', at: now - 5 * DAY },
+        { key: 'stale', at: now - 31 * DAY },
+        { key: 'edge', at: now - 30 * DAY }, // exactly at TTL → kept
+      ];
+      const expired = planExpiry(metas, now, 30 * DAY);
+      return expired.length === 1 && expired[0] === 'stale';
+    },
+  },
+  {
+    name: 'expiry: nothing stale → empty',
+    run: () => planExpiry([{ key: 'a', at: 100 * DAY }], 100 * DAY, 30 * DAY).length === 0,
   },
   {
     name: 'eviction removes matching indexed markers too',

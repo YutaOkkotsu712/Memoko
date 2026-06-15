@@ -19,6 +19,21 @@ const PREFIX = 'cl:'; // conversation-ledger key prefix
 const IDX_PREFIX = 'cli:'; // "chat fully indexed at" marker prefix
 /** Keep total persisted ledgers under this; local quota is ~10MB. */
 export const LEDGER_CAP_BYTES = 8 * 1024 * 1024;
+/** Drop a chat's ledger if it hasn't been touched in this long (privacy). */
+export const LEDGER_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/**
+ * Private windows: keep the ledger in memory only — never write
+ * conversation-derived data (message ids + token counts) to disk. Reads
+ * are left alone (harmless, and there's nothing to read if we never wrote).
+ */
+const isIncognito = (): boolean => {
+  try {
+    return chrome.extension?.inIncognitoContext === true;
+  } catch {
+    return false;
+  }
+};
 
 const keyFor = (siteId: string, convoId: string): string => `${PREFIX}${siteId}:${convoId}`;
 const idxKeyFor = (siteId: string, convoId: string): string =>
@@ -71,6 +86,15 @@ export function planEviction(
   return evict;
 }
 
+/** Keys whose last write is older than the TTL — aged out regardless of cap. */
+export function planExpiry(
+  metas: ReadonlyArray<{ key: string; at: number }>,
+  now: number,
+  ttlMs: number
+): string[] {
+  return metas.filter((m) => now - m.at > ttlMs).map((m) => m.key);
+}
+
 export function indexedKeysForLedgerKeys(keys: readonly string[]): string[] {
   return keys
     .filter((key) => key.startsWith(PREFIX))
@@ -95,7 +119,7 @@ export async function saveLedger(
   convoId: string,
   entries: Map<string, LedgerEntry>
 ): Promise<void> {
-  if (entries.size === 0) return;
+  if (entries.size === 0 || isIncognito()) return;
   const key = keyFor(siteId, convoId);
   const payload: StoredLedger = { e: serializeLedger(entries), at: Date.now() };
   try {
@@ -126,6 +150,7 @@ export async function loadIndexedAt(siteId: string, convoId: string): Promise<nu
 }
 
 export async function markIndexed(siteId: string, convoId: string): Promise<void> {
+  if (isIncognito()) return;
   try {
     await chrome.storage.local.set({ [idxKeyFor(siteId, convoId)]: Date.now() });
   } catch {
@@ -143,9 +168,17 @@ export async function enforceLedgerCap(): Promise<void> {
       const at = (v as StoredLedger)?.at ?? 0;
       metas.push({ key: k, at, bytes: k.length + JSON.stringify(v).length });
     }
-    const evict = planEviction(metas, LEDGER_CAP_BYTES);
-    if (evict.length) {
-      await chrome.storage.local.remove([...evict, ...indexedKeysForLedgerKeys(evict)]);
+    // Age out stale chats first, then evict oldest among what remains if
+    // still over the byte cap.
+    const expired = planExpiry(metas, Date.now(), LEDGER_TTL_MS);
+    const expiredSet = new Set(expired);
+    const evict = planEviction(
+      metas.filter((m) => !expiredSet.has(m.key)),
+      LEDGER_CAP_BYTES
+    );
+    const drop = [...expired, ...evict];
+    if (drop.length) {
+      await chrome.storage.local.remove([...drop, ...indexedKeysForLedgerKeys(drop)]);
     }
   } catch {
     // non-fatal

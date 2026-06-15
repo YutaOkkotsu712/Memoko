@@ -103,6 +103,12 @@
       gap: 8px;
     }
 
+    .alpha-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
+    }
+
     button,
     .toggle {
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -166,6 +172,27 @@
       gap: 2px;
       text-align: left;
       align-content: start;
+    }
+
+    .alpha-key {
+      min-height: 40px;
+      padding: 7px 5px;
+      display: grid;
+      gap: 1px;
+      place-items: center;
+      text-align: center;
+      border-radius: 7px;
+    }
+
+    .alpha-key strong {
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .alpha-key span {
+      font-size: 9px;
+      line-height: 1.15;
+      color: #aab1bc;
     }
 
     .toggle-grid {
@@ -355,10 +382,6 @@
       color: #aab1bc;
     }
 
-    .panel {
-      width: 230px;
-    }
-
     .panel[hidden] {
       display: none;
     }
@@ -390,6 +413,10 @@
 
       .mode-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .alpha-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .chip-grid,
@@ -441,6 +468,13 @@
         </div>
 
         <div class="block">
+          <h2>Space Alphabet Ultimates</h2>
+          <div class="alpha-grid" id="alpha-controls"></div>
+          <button class="run-button wide" id="alpha-test-button" type="button">Run A-Z shortcut tests</button>
+          <div class="sample-note">Hold Space, then tap A-Z. The harness also exposes every letter as a direct button.</div>
+        </div>
+
+        <div class="block">
           <h2>Toggles</h2>
           <div class="toggle-grid">
             <label class="toggle">
@@ -465,7 +499,7 @@
         <div class="block">
           <h2>Full Sweep</h2>
           <button class="run-button wide" id="suite-button" type="button">Run full suite</button>
-          <div class="sample-note">Cycles patrol, idle, reactions, wake, berry snack, summit clear, and Konami in one pass.</div>
+          <div class="sample-note">Cycles patrol, idle, reactions, wake, berry snack, summit clear, and Konami in one pass. Use the A-Z button above for shortcut coverage.</div>
         </div>
 
         <div class="metrics">
@@ -507,7 +541,10 @@
               <div class="panel" hidden>
                 <div class="panel-head">
                   <span class="avatar"></span>
-                  <span class="title">MEMOKO</span>
+                  <div class="head-mid">
+                    <span class="title">MEMOKO</span>
+                    <span class="name-sub"><span class="lv">LV 1</span><span class="class-tag">Context Keeper</span></span>
+                  </div>
                   <span class="badge">Fresh</span>
                 </div>
                 <div class="hpline">
@@ -515,14 +552,35 @@
                 </div>
                 <div class="segbar large">
                   <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span>
-                  <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg"></span>
+                  <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span>
+                  <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg on"></span>
+                  <span class="seg on"></span><span class="seg on"></span><span class="seg on"></span><span class="seg"></span><span class="seg"></span>
                 </div>
-                <div class="status">Memoko is feeling fresh!</div>
+                <div class="xp-row" title="Harness preview of the current panel rank strip.">
+                  <span>NEXT RANK</span><span class="xp-track"><span class="xp-fill"></span></span><b class="v-xp">42%</b>
+                </div>
+                <div class="dialogue">
+                  <span class="d-cursor" aria-hidden="true">&#9656;</span><span class="status">Memoko is feeling fresh!</span>
+                </div>
+                <div class="section-cap">STATUS</div>
                 <div class="rows">
                   <div class="row"><span>Context used</span><i class="dots"></i><b class="v-pct">~12%</b></div>
+                  <div class="row"><span>Adjusted load</span><i class="dots"></i><b class="v-adj">~12%</b></div>
                   <div class="row"><span>Est. tokens</span><i class="dots"></i><b class="v-tokens">~23k / 190k</b></div>
                   <div class="row"><span>Messages</span><i class="dots"></i><b class="v-msgs">9</b></div>
+                  <div class="row"><span>Duplicates</span><i class="dots"></i><b class="v-dup">none</b></div>
+                  <div class="row"><span>Burn</span><i class="dots"></i><b class="v-burn">~0/min</b></div>
+                  <div class="row"><span>You / AI</span><i class="dots"></i><b class="v-split">48% / 52%</b></div>
+                  <div class="row v-top-row"><span>Heaviest</span><i class="dots"></i><b class="v-top">#2 (AI) · ~4k</b></div>
                   <div class="row"><span>Watching</span><i class="dots"></i><b class="v-age">test harness</b></div>
+                </div>
+                <div class="handoff-box"><button class="hbtn primary" type="button">Generate handoff</button></div>
+                <div class="stats">
+                  <div class="section-cap">RECORDS</div>
+                  <div class="srow"><span>Chats watched</span><i class="dots"></i><b class="s-chats">12</b></div>
+                  <div class="srow"><span>Handoffs done</span><i class="dots"></i><b class="s-hand">3</b></div>
+                  <div class="srow"><span>Tokens saved</span><i class="dots"></i><b class="s-saved">~124k</b></div>
+                  <div class="stats-hero"><span class="heart">&#9829;</span><span class="hero-text">Memoko has saved you <b class="s-hero">~124k</b> tokens.</span></div>
                 </div>
                 <div class="foot">Local harness only</div>
               </div>
@@ -686,6 +744,192 @@
         }
       };
 
+      const ALPHA_CLASSES = [
+        "alpha-adapt",
+        "alpha-getsuga",
+        "alpha-cyclops",
+        "alpha-instinct",
+        "alpha-saiyan",
+        "alpha-fuga",
+        "alpha-gin",
+        "alpha-hollow",
+        "alpha-cowl",
+        "alpha-stand",
+        "alpha-rengoku",
+        "alpha-nika",
+        "alpha-domain",
+        "alpha-subaru",
+        "alpha-rika",
+        "alpha-pain",
+        "alpha-harley",
+        "alpha-zoro",
+        "alpha-saitama",
+        "alpha-itachi",
+        "alpha-susanoo",
+        "alpha-flash",
+        "alpha-zawarudo",
+        "alpha-exodia",
+        "alpha-kqueen",
+        "alpha-zenitsu",
+        "alpha-berry",
+        "alpha-heal",
+        "alpha-aces",
+        "alpha-cheer",
+        "alpha-dodge",
+        "alpha-energy",
+        "alpha-flag",
+        "alpha-glint",
+        "alpha-inspect",
+        "alpha-jump",
+        "alpha-kart",
+        "alpha-loot",
+        "alpha-guide",
+        "alpha-ocarina",
+        "alpha-portal",
+        "alpha-quest",
+        "alpha-rhythm",
+        "alpha-time"
+      ];
+
+      const ALPHA_EFFECTS = {
+        a: { label: "Adapt", action: "anime", effect: "adapt" },
+        b: { label: "Getsuga", action: "anime", effect: "getsuga" },
+        c: { label: "Optic", action: "anime", effect: "cyclops" },
+        d: { label: "Instinct", action: "anime", effect: "instinct" },
+        e: { label: "Saiyan", action: "anime", effect: "saiyan" },
+        f: { label: "Fuga", action: "anime", effect: "fuga" },
+        g: { label: "Gin", action: "anime", effect: "gin" },
+        h: { label: "Hollow", action: "anime", effect: "hollow" },
+        i: { label: "Cowl", action: "anime", effect: "cowl" },
+        j: { label: "Stand", action: "anime", effect: "stand" },
+        k: { label: "Rengoku", action: "anime", effect: "rengoku" },
+        l: { label: "Nika", action: "anime", effect: "nika" },
+        m: { label: "Domain", action: "anime", effect: "domain" },
+        n: { label: "Subaru", action: "anime", effect: "subaru" },
+        o: { label: "Rika", action: "anime", effect: "rika" },
+        p: { label: "Pain", action: "anime", effect: "pain" },
+        q: { label: "Harley", action: "anime", effect: "harley" },
+        r: { label: "Zoro", action: "anime", effect: "zoro" },
+        s: { label: "Saitama", action: "anime", effect: "saitama" },
+        t: { label: "Itachi", action: "anime", effect: "itachi" },
+        u: { label: "Susanoo", action: "anime", effect: "susanoo" },
+        v: { label: "Final Flash", action: "anime", effect: "finalflash" },
+        w: { label: "Za Warudo", action: "anime", effect: "zawarudo" },
+        x: { label: "Exodia", action: "anime", effect: "exodia" },
+        y: { label: "Killer Queen", action: "anime", effect: "kqueen" },
+        z: { label: "Zenitsu", action: "anime", effect: "zenitsu" }
+      };
+
+      const ANIME_EFFECTS = {
+        adapt: { className: "alpha-adapt", pose: "watch", line: "Naah, I'd Adapt.", duration: 1900 },
+        getsuga: { className: "alpha-getsuga", pose: "wave", line: "Getsuga... Tensho!", duration: 1450 },
+        cyclops: { className: "alpha-cyclops", pose: "watch", line: "Hands off the visor.", duration: 1150 },
+        instinct: { className: "alpha-instinct", pose: "watch", line: "...you missed.", duration: 1500 },
+        saiyan: { className: "alpha-saiyan", pose: "cheer", line: "Haaaa-!!", duration: 1950 },
+        fuga: { className: "alpha-fuga", pose: "watch", line: "Fuga.", duration: 1700 },
+        gin: { className: "alpha-gin", pose: "watch", line: "...five more minutes.", duration: 1600 },
+        hollow: { className: "alpha-hollow", pose: "watch", line: "Hollow Purple.", duration: 1550 },
+        cowl: { className: "alpha-cowl", pose: "watch", line: "Full Cowl!", duration: 1500 },
+        stand: { className: "alpha-stand", pose: "watch", line: "Your stand has the same ability as mine.", duration: 1900 },
+        rengoku: { className: "alpha-rengoku", pose: "wave", line: "Ninth Form: Rengoku!", duration: 1600 },
+        nika: { className: "alpha-nika", pose: "cheer", line: "Drums of Liberation!", duration: 1700 },
+        domain: { className: "alpha-domain", pose: "watch", line: "Self-Embodiment of Perfection.", duration: 1900 },
+        subaru: { className: "alpha-subaru", pose: "hurt", line: "Return by Death.", duration: 1700 },
+        rika: { className: "alpha-rika", pose: "watch", line: "Rika - love beam!", duration: 1800 },
+        pain: { className: "alpha-pain", pose: "watch", line: "Chibaku Tensei.", duration: 1900 },
+        harley: { className: "alpha-harley", pose: "cheer", line: "Hammer time!", duration: 1300 },
+        zoro: { className: "alpha-zoro", pose: "cheer", line: "Oni Giri!", duration: 1200 },
+        saitama: { className: "alpha-saitama", pose: "wave", line: "Serious punch.", duration: 1300 },
+        itachi: { className: "alpha-itachi", pose: "watch", line: "Tsukuyomi.", duration: 1850 },
+        susanoo: { className: "alpha-susanoo", pose: "watch", line: "Susanoo.", duration: 1950 },
+        finalflash: { className: "alpha-flash", pose: "watch", line: "Final... Flash!", duration: 1850 },
+        zawarudo: { className: "alpha-zawarudo", pose: "watch", line: "ZA WARUDO!", duration: 2000 },
+        exodia: { className: "alpha-exodia", pose: "watch", line: "Exodia - Obliterate!", duration: 2000 },
+        kqueen: { className: "alpha-kqueen", pose: "watch", line: "Killer Queen. Touch it... boom.", duration: 1800 },
+        zenitsu: { className: "alpha-zenitsu", pose: "wave", line: "Seventh Form: Flaming Thunder God!", duration: 1700 }
+      };
+
+      const ALPHA_TEST_KEYS = "abcdefghijklmnopqrstuvwxyz".split("");
+      const ALPHA_TEST_ASSERT_MS = 120;
+      const ALPHA_TEST_DISPLAY_MS = 980;
+      const ANIME_PARTICLE_CLASSES = [
+        "mh-wheel",
+        "adapt-spark",
+        "gt-sword",
+        "gt-cres",
+        "gt-spark",
+        "optic-visor",
+        "optic-beam",
+        "optic-impact",
+        "ui-ghost",
+        "ui-spark",
+        "ss-aura",
+        "ss-flash",
+        "ss-spark",
+        "fuga-blast",
+        "fuga-ember",
+        "gin-eliza",
+        "gin-mark",
+        "hp-orb",
+        "hp-purple",
+        "hp-beam",
+        "hp-spark",
+        "cowl-aura",
+        "cowl-bolt",
+        "stand-body",
+        "stand-fist",
+        "ora-bit",
+        "rg-sword",
+        "rg-slash",
+        "rg-ember",
+        "nika-jacket",
+        "nika-ring",
+        "nika-pop",
+        "dom-sphere",
+        "dom-eye",
+        "dom-hand",
+        "rbd-clock",
+        "rbd-hand",
+        "rbd-mist",
+        "rika-body",
+        "rika-beam",
+        "rika-heart",
+        "pn-planet",
+        "pn-rock",
+        "hq-mallet",
+        "hq-bam",
+        "hq-star",
+        "zo-slash",
+        "zo-flash",
+        "st-fist",
+        "st-shock",
+        "st-line",
+        "it-eye",
+        "it-moon",
+        "it-crow",
+        "su-body",
+        "su-slash",
+        "su-spark",
+        "ff-charge",
+        "ff-beam",
+        "ff-core",
+        "ff-spark",
+        "zw-freeze",
+        "zw-dio",
+        "zw-tick",
+        "ex-body",
+        "ex-flash",
+        "ex-card",
+        "ex-ray",
+        "kq-body",
+        "kq-blast",
+        "kq-ring",
+        "kq-bit",
+        "zn-sword",
+        "zn-dash",
+        "zn-bolt"
+      ];
+
       const SUITE_STEPS = [
         { label: "Fresh patrol", health: "fresh", mode: "patrol", wait: 1800 },
         { label: "Healthy patrol", health: "healthy", mode: "patrol", wait: 1800 },
@@ -705,6 +949,9 @@
         { label: "Nap pose", health: "fresh", mode: "nap", wait: 1800 },
         { label: "Wake from nap", action: "wake", wait: 2200 },
         { label: "Heavy pet reaction", health: "heavy", mode: "patrol", action: "pet", wait: 1300 },
+        { label: "Secret wave", health: "fresh", mode: "patrol", action: "secret-wave", wait: 1500 },
+        { label: "Potion sparkle", health: "healthy", mode: "patrol", action: "heal", wait: 1500 },
+        { label: "Star power", health: "fresh", mode: "patrol", action: "star", wait: 1700 },
         { label: "Berry snack", health: "fresh", mode: "patrol", action: "berry", wait: 1500 },
         { label: "Summit clear", health: "fresh", mode: "patrol", action: "summit", wait: 1800 },
         { label: "Konami dance", health: "fresh", mode: "patrol", action: "konami", wait: 1900 }
@@ -729,11 +976,26 @@
       const panelSegs = root.querySelector(".segbar");
       const vHp = root.querySelector(".v-hp");
       const vPct = root.querySelector(".v-pct");
+      const vAdj = root.querySelector(".v-adj");
       const vTokens = root.querySelector(".v-tokens");
       const vMsgs = root.querySelector(".v-msgs");
+      const vDup = root.querySelector(".v-dup");
+      const vBurn = root.querySelector(".v-burn");
+      const vSplit = root.querySelector(".v-split");
+      const vTop = root.querySelector(".v-top");
       const vAge = root.querySelector(".v-age");
+      const vLv = root.querySelector(".lv");
+      const classTag = root.querySelector(".class-tag");
+      const xpFill = root.querySelector(".xp-fill");
+      const vXp = root.querySelector(".v-xp");
+      const sChats = root.querySelector(".s-chats");
+      const sHand = root.querySelector(".s-hand");
+      const sSaved = root.querySelector(".s-saved");
+      const sHero = root.querySelector(".s-hero");
       const healthControls = document.getElementById("health-controls");
       const modeControls = document.getElementById("mode-controls");
+      const alphaControls = document.getElementById("alpha-controls");
+      const alphaTestButton = document.getElementById("alpha-test-button");
       const poseGallery = document.getElementById("pose-gallery");
       const suiteButton = document.getElementById("suite-button");
       const togglePanel = document.getElementById("toggle-panel");
@@ -761,7 +1023,9 @@
         tracking: true,
         theme: "dark",
         suiteRunning: false,
-        statusLabel: "Manual mode"
+        alphaShortcutTestRunning: false,
+        statusLabel: "Manual mode",
+        lastAlphaShortcutTest: null
       };
 
       let currentPose = null;
@@ -774,6 +1038,10 @@
       let konamiTimer = 0;
       let berryTimer = 0;
       let summitTimer = 0;
+      let secretWaveTimer = 0;
+      let healTimer = 0;
+      let starTimer = 0;
+      let letterCharmTimer = 0;
       let hurtTimer = 0;
       let wakeTimerA = 0;
       let wakeTimerB = 0;
@@ -1007,6 +1275,20 @@
         window.setTimeout(() => berry.remove(), 1600);
       }
 
+      function spawnBerryBurst() {
+        for (let i = 0; i < 4; i += 1) {
+          const berry = document.createElement("span");
+          berry.className = "berry-drop berry-mini";
+          berry.innerHTML = '<i class="berry-fruit"></i><i class="berry-leaf"></i>';
+          berry.style.left = 16 + i * 9 + "px";
+          berry.style.setProperty("--d", (i * 0.07).toFixed(2) + "s");
+          berry.style.setProperty("--x", (i - 1.5) * 10 + "px");
+          berry.style.setProperty("--spin", (i % 2 ? 28 : -24) + "deg");
+          pillspot.appendChild(berry);
+          window.setTimeout(() => berry.remove(), 1500);
+        }
+      }
+
       function spawnSummitFlag() {
         const flag = document.createElement("span");
         flag.className = "summit-flag";
@@ -1015,12 +1297,1111 @@
         window.setTimeout(() => flag.remove(), 1900);
       }
 
-      function spawnWakeMark() {
+      function spawnWakeMark(text = "!") {
         const mark = document.createElement("span");
         mark.className = "mark";
-        mark.textContent = "!";
+        mark.textContent = text;
         pillspot.appendChild(mark);
         window.setTimeout(() => mark.remove(), 900);
+      }
+
+      function spawnHealSparks() {
+        for (let i = 0; i < 5; i += 1) {
+          const spark = document.createElement("span");
+          spark.className = "heal-spark";
+          spark.textContent = i % 2 === 0 ? "+" : "HP";
+          spark.style.left = (18 + i * 8 + Math.random() * 4).toFixed(0) + "px";
+          spark.style.setProperty("--d", (i * 0.08).toFixed(2) + "s");
+          spark.style.setProperty("--x", (Math.random() * 28 - 14).toFixed(0) + "px");
+          pillspot.appendChild(spark);
+          window.setTimeout(() => spark.remove(), 1500);
+        }
+      }
+
+      function spawnStarBits() {
+        const colors = ["#ffd166", "#fff7d6", "#5db3e8", "#ff5d8f", "#34d399"];
+        for (let i = 0; i < 12; i += 1) {
+          const bit = document.createElement("span");
+          bit.className = "star-bit";
+          bit.textContent = i % 3 === 0 ? "\u2605" : "\u2726";
+          bit.style.left = Math.round((i / 11) * 100) + "%";
+          bit.style.color = colors[i % colors.length];
+          bit.style.setProperty("--d", (Math.random() * 0.24).toFixed(2) + "s");
+          bit.style.setProperty("--fall", (40 + Math.random() * 30).toFixed(0) + "px");
+          bit.style.setProperty("--spin", (120 + Math.random() * 260).toFixed(0) + "deg");
+          pillspot.appendChild(bit);
+          window.setTimeout(() => bit.remove(), 1700);
+        }
+      }
+
+      function spawnLetterBits(letter, color) {
+        for (let i = 0; i < 8; i += 1) {
+          const bit = document.createElement("span");
+          bit.className = "letter-bit";
+          bit.textContent = letter;
+          bit.style.left = Math.round((i / 7) * 100) + "%";
+          bit.style.color = color;
+          bit.style.setProperty("--d", (Math.random() * 0.2).toFixed(2) + "s");
+          bit.style.setProperty("--fall", (34 + Math.random() * 26).toFixed(0) + "px");
+          bit.style.setProperty("--spin", (80 + Math.random() * 220).toFixed(0) + "deg");
+          pillspot.appendChild(bit);
+          window.setTimeout(() => bit.remove(), 1300);
+        }
+      }
+
+      function rect(x, y, w, h, f) {
+        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + f + '"/>';
+      }
+
+      function wheelSVG() {
+        const outline = "#5e421c";
+        const mid = "#c79a45";
+        const high = "#f2d889";
+        const hub = "#7a5a26";
+        let svg = '<svg class="mh-svg" viewBox="0 0 18 18" width="24" height="24" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        [0, 45, 90, 135].forEach((rotation) => {
+          svg += '<g transform="rotate(' + rotation + ' 9 9)">' + rect(8, 2, 2, 14, mid) + rect(8.4, 2, 0.6, 14, high) + "</g>";
+        });
+        svg += rect(7, 0, 4, 2, high) + rect(7, 16, 4, 2, high) + rect(0, 7, 2, 4, high) + rect(16, 7, 2, 4, high);
+        svg += rect(2, 2, 2, 2, mid) + rect(14, 2, 2, 2, mid) + rect(2, 14, 2, 2, mid) + rect(14, 14, 2, 2, mid);
+        svg += rect(6, 6, 6, 6, outline) + rect(7, 7, 4, 4, hub) + rect(8, 8, 2, 2, high);
+        return svg + "</svg>";
+      }
+
+      function swordSVG() {
+        const blade = "#16191f";
+        const edge = "#dfe6ee";
+        const guard = "#0c0d10";
+        const hilt = "#7a4a2a";
+        const wrap = "#c0c6cf";
+        return '<svg class="gt-sword-svg" viewBox="0 0 6 22" width="9" height="33" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(1, 0, 4, 15, blade) + rect(4, 0, 1, 15, edge) + rect(1, 0, 1, 1, edge) +
+          rect(0, 14, 6, 2, guard) + rect(2, 16, 2, 6, hilt) + rect(2, 17, 2, 1, wrap) + rect(2, 19, 2, 1, wrap) +
+          "</svg>";
+      }
+
+      function crescentSVG() {
+        const cyan = "#2fc3e0";
+        const light = "#6ee6f5";
+        const white = "#eafcff";
+        return '<svg class="gt-cres-svg" viewBox="0 0 13 20" width="26" height="40" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(5, 0, 4, 2, cyan) + rect(3, 2, 4, 2, cyan) + rect(1, 4, 4, 3, cyan) + rect(0, 7, 4, 6, cyan) +
+          rect(1, 13, 4, 3, cyan) + rect(3, 16, 4, 2, cyan) + rect(5, 18, 4, 2, cyan) +
+          rect(6, 2, 2, 2, light) + rect(4, 4, 2, 3, light) + rect(3, 7, 2, 6, light) + rect(4, 13, 2, 3, light) + rect(6, 16, 2, 2, light) +
+          rect(7, 4, 1, 2, white) + rect(5, 8, 1, 4, white) + rect(7, 14, 1, 2, white) +
+          "</svg>";
+      }
+
+      function flameSVG(frame) {
+        const outer = "#ff8a00";
+        const mid = "#ffc21f";
+        const core = "#fff3c4";
+        let svg = '<svg viewBox="0 0 22 30" width="44" height="60" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(4, 20, 14, 10, outer) + rect(6, 14, 10, 16, mid) + rect(8, 18, 6, 12, core);
+        if (frame === 0) {
+          svg += rect(5, 8, 3, 12, outer) + rect(10, 4, 3, 16, mid) + rect(15, 10, 3, 10, outer) + rect(11, 6, 1, 10, core) + rect(6, 12, 1, 6, core);
+        } else {
+          svg += rect(6, 11, 3, 9, outer) + rect(10, 2, 3, 18, mid) + rect(14, 7, 3, 13, outer) + rect(11, 4, 1, 12, core) + rect(15, 10, 1, 6, core);
+        }
+        return svg + "</svg>";
+      }
+
+      function fireCloudSVG(frame) {
+        const dark = "#7a1606";
+        const red = "#ff4a1a";
+        const orange = "#ff9a1f";
+        const yellow = "#ffd24a";
+        let svg = '<svg viewBox="0 0 30 26" width="60" height="52" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(2, 8, 20, 12, dark) + rect(4, 6, 19, 16, red) + rect(7, 9, 15, 10, orange) + rect(10, 11, 11, 6, yellow);
+        if (frame === 0) {
+          svg += rect(22, 6, 4, 4, red) + rect(24, 12, 4, 4, orange) + rect(22, 16, 4, 4, red) + rect(26, 10, 2, 4, yellow) + rect(3, 5, 3, 3, red);
+        } else {
+          svg += rect(22, 9, 4, 4, orange) + rect(25, 12, 4, 4, red) + rect(23, 15, 4, 4, orange) + rect(27, 11, 2, 3, yellow) + rect(4, 18, 3, 3, red);
+        }
+        return svg + "</svg>";
+      }
+
+      function elizaSVG() {
+        const white = "#f2f4f7";
+        const ink = "#23272f";
+        const wood = "#caa86a";
+        const darkWood = "#8a6e3c";
+        let svg = '<svg viewBox="0 0 26 32" width="39" height="48" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(15, 6, 2, 12, darkWood);
+        svg += rect(6, 0, 18, 8, wood) + rect(6, 0, 18, 1, darkWood) + rect(6, 7, 18, 1, darkWood) + rect(6, 0, 1, 8, darkWood) + rect(23, 0, 1, 8, darkWood);
+        svg += rect(9, 2, 12, 1, ink) + rect(9, 4, 9, 1, ink);
+        svg += rect(7, 16, 12, 14, white) + rect(6, 19, 1, 8, white) + rect(19, 19, 1, 8, white);
+        svg += rect(8, 30, 3, 2, ink) + rect(14, 30, 3, 2, ink) + rect(9, 20, 2, 3, ink) + rect(14, 20, 2, 3, ink) + rect(11, 24, 3, 1, ink);
+        return svg + "</svg>";
+      }
+
+      function boltSVG(color) {
+        return '<svg viewBox="0 0 8 22" width="12" height="33" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(3, 0, 2, 5, color) + rect(2, 4, 2, 4, color) + rect(4, 7, 2, 5, color) + rect(2, 11, 2, 5, color) + rect(3, 15, 2, 7, color) +
+          rect(0, 8, 2, 2, color) + rect(6, 13, 2, 2, color) +
+          "</svg>";
+      }
+
+      function standSVG() {
+        const purple = "#6b5bd6";
+        const darkPurple = "#473a99";
+        const skin = "#57c9bd";
+        const gold = "#ffd23f";
+        const ink = "#241a3a";
+        const white = "#eae6ff";
+        let svg = '<svg viewBox="0 0 26 40" width="34" height="52" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(9, 1, 8, 2, darkPurple) + rect(9, 3, 8, 6, skin) + rect(8, 4, 10, 2, gold);
+        svg += rect(10, 5, 2, 2, ink) + rect(14, 5, 2, 2, ink);
+        svg += rect(7, 9, 12, 12, purple) + rect(8, 10, 10, 8, darkPurple) + rect(10, 10, 6, 7, skin);
+        svg += rect(4, 9, 3, 9, purple) + rect(19, 9, 3, 9, purple);
+        svg += rect(8, 21, 4, 12, purple) + rect(14, 21, 4, 12, purple) + rect(8, 33, 4, 3, ink) + rect(14, 33, 4, 3, ink);
+        svg += rect(20, 6, 5, 5, skin) + rect(20, 6, 5, 1, white);
+        return svg + "</svg>";
+      }
+
+      function katanaSVG() {
+        const steel = "#e6ecf2";
+        const steelDark = "#aeb6c0";
+        const guard = "#2a1a0a";
+        const hilt = "#8a2a1a";
+        const flame = "#ff8a00";
+        const flameLight = "#ffd24a";
+        let svg = '<svg viewBox="0 0 10 28" width="15" height="42" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(4, 2, 2, 16, steel) + rect(6, 2, 1, 16, steelDark) + rect(4, 2, 1, 1, "#fff") + rect(2, 18, 6, 1, guard);
+        svg += rect(4, 19, 2, 7, hilt) + rect(4, 20, 2, 1, "#caa86a") + rect(4, 23, 2, 1, "#caa86a");
+        svg += rect(3, 3, 1, 4, flame) + rect(6, 5, 1, 4, flame) + rect(2, 8, 1, 3, flameLight) + rect(7, 9, 1, 4, flame) + rect(3, 12, 1, 3, flameLight) + rect(6, 14, 1, 3, flameLight);
+        return svg + "</svg>";
+      }
+
+      function flameSlashSVG() {
+        const red = "#ff3a0f";
+        const orange = "#ff9a1f";
+        const yellow = "#ffe06a";
+        let svg = '<svg viewBox="0 0 13 22" width="30" height="50" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(5, 0, 4, 2, red) + rect(3, 2, 4, 2, red) + rect(1, 4, 4, 3, red) + rect(0, 7, 4, 8, red) + rect(1, 15, 4, 3, red) + rect(3, 18, 4, 2, red) + rect(5, 20, 4, 2, red);
+        svg += rect(6, 2, 2, 2, orange) + rect(4, 4, 2, 3, orange) + rect(3, 7, 2, 8, orange) + rect(4, 15, 2, 3, orange) + rect(6, 18, 2, 2, orange);
+        svg += rect(7, 5, 1, 3, yellow) + rect(5, 9, 1, 4, yellow) + rect(7, 14, 1, 3, yellow);
+        return svg + "</svg>";
+      }
+
+      function jacketSVG() {
+        const white = "#ffffff";
+        const shadow = "#d8dde6";
+        const ink = "#9aa3b0";
+        return '<svg viewBox="0 0 24 16" width="36" height="24" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(2, 2, 6, 13, white) + rect(16, 2, 6, 13, white) + rect(2, 2, 6, 1, shadow) + rect(16, 2, 6, 1, shadow) +
+          rect(7, 3, 2, 12, ink) + rect(15, 3, 2, 12, ink) +
+          "</svg>";
+      }
+
+      function handSVG(color) {
+        return '<svg viewBox="0 0 12 14" width="18" height="21" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(2, 6, 8, 6, color) + rect(2, 2, 2, 5, color) + rect(5, 1, 2, 6, color) + rect(8, 2, 2, 5, color) + rect(0, 8, 2, 3, color) +
+          "</svg>";
+      }
+
+      function clockSVG() {
+        const gold = "#ffd23f";
+        const dark = "#2a2030";
+        const white = "#fff";
+        let svg = '<svg viewBox="0 0 18 18" width="27" height="27" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(6, 0, 6, 2, gold) + rect(6, 16, 6, 2, gold) + rect(0, 6, 2, 6, gold) + rect(16, 6, 2, 6, gold) + rect(2, 2, 2, 2, gold) + rect(14, 2, 2, 2, gold) + rect(2, 14, 2, 2, gold) + rect(14, 14, 2, 2, gold);
+        svg += rect(4, 4, 10, 10, dark) + rect(8, 5, 2, 4, white) + rect(8, 8, 4, 2, white) + rect(8, 8, 2, 2, gold);
+        return svg + "</svg>";
+      }
+
+      function rikaSVG() {
+        const dark = "#2a1830";
+        const mid = "#46264f";
+        const teeth = "#f0e8f5";
+        const eye = "#ff5d8f";
+        const horn = "#1a0f20";
+        let svg = '<svg viewBox="0 0 30 28" width="48" height="45" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(4, 6, 22, 18, dark) + rect(6, 4, 18, 4, dark) + rect(3, 10, 2, 10, dark) + rect(25, 10, 2, 10, dark);
+        svg += rect(7, 7, 16, 11, mid) + rect(5, 0, 3, 5, horn) + rect(22, 0, 3, 5, horn);
+        svg += rect(11, 9, 8, 5, teeth) + rect(13, 10, 4, 3, eye) + rect(14, 10, 2, 3, horn);
+        svg += rect(6, 22, 3, 4, teeth) + rect(11, 22, 3, 5, teeth) + rect(16, 22, 3, 4, teeth) + rect(21, 22, 3, 5, teeth);
+        return svg + "</svg>";
+      }
+
+      function planetSVG() {
+        const dark = "#3a3340";
+        const mid = "#56505e";
+        const light = "#7a7486";
+        const purple = "#a07ad0";
+        let svg = '<svg viewBox="0 0 20 20" width="34" height="34" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(6, 1, 8, 1, dark) + rect(4, 2, 12, 1, dark) + rect(3, 3, 14, 1, dark) + rect(2, 4, 16, 2, mid) + rect(1, 6, 18, 8, mid) + rect(2, 14, 16, 2, mid) + rect(3, 16, 14, 1, dark) + rect(4, 17, 12, 1, dark) + rect(6, 18, 8, 1, dark);
+        svg += rect(5, 5, 3, 2, light) + rect(12, 8, 2, 2, light) + rect(7, 11, 4, 2, dark) + rect(13, 5, 2, 3, dark) + rect(9, 8, 3, 3, purple) + rect(10, 9, 1, 1, "#e6c8ff");
+        return svg + "</svg>";
+      }
+
+      function rockSVG() {
+        const dark = "#56505e";
+        const light = "#7a7486";
+        return '<svg viewBox="0 0 6 6" width="9" height="9" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(1, 0, 4, 1, dark) + rect(0, 1, 6, 4, dark) + rect(1, 5, 4, 1, dark) + rect(1, 1, 2, 2, light) +
+          "</svg>";
+      }
+
+      function malletSVG() {
+        const red = "#e63a4a";
+        const redDark = "#9a1f2c";
+        const black = "#2a2030";
+        const white = "#ffffff";
+        let svg = '<svg viewBox="0 0 20 30" width="30" height="45" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(2, 0, 16, 7, red) + rect(2, 7, 16, 6, redDark) + rect(2, 0, 16, 1, white) + rect(2, 0, 1, 13, "#ff8a96") + rect(17, 0, 1, 13, redDark);
+        svg += rect(9, 13, 2, 15, black) + rect(8, 27, 4, 3, black);
+        return svg + "</svg>";
+      }
+
+      function fistSVG() {
+        const skin = "#ffd9c4";
+        const shade = "#e0a884";
+        const ink = "#7a4a36";
+        let svg = '<svg viewBox="0 0 16 14" width="30" height="26" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(2, 2, 12, 10, skin) + rect(2, 2, 12, 1, "#fff") + rect(2, 11, 12, 1, ink);
+        svg += rect(13, 3, 2, 2, shade) + rect(13, 6, 2, 2, shade) + rect(13, 9, 2, 2, shade);
+        svg += rect(4, 4, 8, 1, shade) + rect(4, 7, 8, 1, shade) + rect(0, 4, 2, 6, shade);
+        return svg + "</svg>";
+      }
+
+      function sharinganSVG() {
+        const red = "#c0142a";
+        const redDark = "#7a0c1a";
+        const black = "#140206";
+        const white = "#ffd6dd";
+        let svg = '<svg viewBox="0 0 18 18" width="30" height="30" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(5, 1, 8, 1, white) + rect(3, 2, 12, 1, white) + rect(2, 3, 14, 2, white) + rect(1, 5, 16, 8, white) + rect(2, 13, 14, 2, white) + rect(3, 15, 12, 1, white) + rect(5, 16, 8, 1, white);
+        svg += rect(5, 4, 8, 2, red) + rect(4, 6, 10, 6, red) + rect(5, 12, 8, 2, red) + rect(7, 6, 4, 6, redDark) + rect(8, 8, 2, 2, black);
+        svg += rect(8, 4, 2, 2, black) + rect(12, 8, 2, 2, black) + rect(6, 11, 2, 2, black);
+        return svg + "</svg>";
+      }
+
+      function crowSVG() {
+        const black = "#0c0a10";
+        return '<svg viewBox="0 0 10 6" width="14" height="9" shape-rendering="crispEdges" style="display:block;overflow:visible">' +
+          rect(4, 2, 2, 3, black) + rect(0, 1, 4, 1, black) + rect(6, 1, 4, 1, black) + rect(1, 0, 2, 1, black) + rect(7, 0, 2, 1, black) +
+          "</svg>";
+      }
+
+      function susanooSVG() {
+        const aura = "#5fc8ff";
+        const auraLight = "#8fdcff";
+        const deep = "#2f6fb0";
+        const blade = "#d6f4ff";
+        const hollow = "#1c4f86";
+        let svg = '<svg viewBox="0 0 40 46" width="64" height="74" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(16, 2, 8, 6, aura) + rect(17, 3, 6, 3, hollow) + rect(13, 0, 3, 4, auraLight) + rect(24, 0, 3, 4, auraLight);
+        svg += rect(17, 4, 2, 1, blade) + rect(21, 4, 2, 1, blade);
+        svg += rect(10, 9, 20, 14, aura) + rect(8, 10, 3, 9, deep) + rect(29, 10, 3, 9, deep);
+        svg += rect(13, 12, 14, 9, hollow) + rect(14, 13, 12, 1, auraLight) + rect(14, 16, 12, 1, auraLight) + rect(14, 19, 12, 1, auraLight);
+        svg += rect(12, 23, 16, 8, aura) + rect(13, 31, 14, 4, deep);
+        svg += rect(6, 11, 4, 12, aura) + rect(6, 23, 4, 5, auraLight);
+        svg += rect(30, 6, 4, 10, aura) + rect(31, 2, 3, 6, auraLight);
+        svg += rect(33, -12, 3, 18, blade) + rect(34, -12, 1, 18, "#ffffff") + rect(32, 4, 5, 2, deep);
+        return svg + "</svg>";
+      }
+
+      function exodiaSVG() {
+        const gold = "#e9c44c";
+        const goldDark = "#a9801f";
+        const skin = "#f0d98a";
+        const ink = "#3a2a08";
+        const glow = "#fff3c0";
+        let svg = '<svg viewBox="0 0 34 40" width="52" height="61" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(11, 4, 12, 8, skin) + rect(13, 6, 8, 4, goldDark) + rect(8, 1, 4, 5, gold) + rect(22, 1, 4, 5, gold);
+        svg += rect(13, 6, 2, 2, ink) + rect(19, 6, 2, 2, ink);
+        svg += rect(7, 12, 20, 16, gold) + rect(5, 13, 3, 11, goldDark) + rect(26, 13, 3, 11, goldDark);
+        svg += rect(10, 15, 14, 10, goldDark) + rect(14, 17, 6, 6, glow);
+        svg += rect(2, 14, 3, 9, skin) + rect(29, 14, 3, 9, skin);
+        svg += rect(11, 28, 5, 10, gold) + rect(18, 28, 5, 10, gold);
+        return svg + "</svg>";
+      }
+
+      function killerQueenSVG() {
+        const pink = "#f04d8f";
+        const pinkDark = "#b32560";
+        const skin = "#ffe0ec";
+        const ink = "#3a1020";
+        const gold = "#ffd23f";
+        let svg = '<svg viewBox="0 0 26 38" width="38" height="56" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(8, 0, 10, 3, gold) + rect(7, 3, 12, 8, pink) + rect(9, 5, 8, 4, skin);
+        svg += rect(10, 6, 2, 2, ink) + rect(14, 6, 2, 2, ink) + rect(11, 9, 4, 1, ink);
+        svg += rect(6, 11, 14, 12, pink) + rect(8, 13, 10, 8, pinkDark);
+        svg += rect(3, 12, 3, 10, pink) + rect(20, 12, 3, 10, pink) + rect(2, 21, 3, 4, skin) + rect(21, 21, 3, 4, skin);
+        svg += rect(8, 23, 4, 13, pink) + rect(14, 23, 4, 13, pink);
+        return svg + "</svg>";
+      }
+
+      function thunderSVG(color, white) {
+        let svg = '<svg viewBox="0 0 10 26" width="15" height="39" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(4, 0, 3, 6, color) + rect(2, 5, 3, 5, color) + rect(5, 9, 3, 6, color) + rect(2, 14, 3, 6, color) + rect(4, 19, 3, 7, color);
+        svg += rect(5, 1, 1, 5, white) + rect(3, 6, 1, 4, white) + rect(6, 10, 1, 5, white) + rect(3, 15, 1, 5, white);
+        svg += rect(0, 9, 2, 2, color) + rect(8, 16, 2, 2, color);
+        return svg + "</svg>";
+      }
+
+      function standDioSVG() {
+        const yellow = "#ffd23f";
+        const shade = "#b8901f";
+        const skin = "#ffe6c4";
+        const ink = "#3a2a10";
+        const gold = "#d6a020";
+        let svg = '<svg viewBox="0 0 24 38" width="34" height="54" shape-rendering="crispEdges" style="display:block;overflow:visible">';
+        svg += rect(8, 0, 8, 3, yellow) + rect(7, 3, 10, 7, skin) + rect(9, 5, 2, 2, ink) + rect(13, 5, 2, 2, ink);
+        svg += rect(6, 10, 12, 12, yellow) + rect(8, 12, 8, 8, shade);
+        svg += rect(3, 11, 3, 10, yellow) + rect(18, 11, 3, 10, yellow) + rect(2, 6, 3, 6, skin) + rect(19, 6, 3, 6, skin);
+        svg += rect(8, 22, 4, 14, yellow) + rect(14, 22, 4, 14, yellow) + rect(6, 8, 12, 1, gold);
+        return svg + "</svg>";
+      }
+
+      function spawnAceCards() {
+        const cards = [
+          { suit: "\u2660", color: "black", tx: -34, ty: -42, rot: -32 },
+          { suit: "\u2665", color: "red", tx: -10, ty: -58, rot: -12 },
+          { suit: "\u2666", color: "red", tx: 16, ty: -54, rot: 13 },
+          { suit: "\u2663", color: "black", tx: 40, ty: -36, rot: 34 }
+        ];
+        cards.forEach((card, i) => {
+          const ace = document.createElement("span");
+          ace.className = "ace-card " + card.color;
+          ace.innerHTML = "<b>A</b><i>" + card.suit + "</i><em>" + card.suit + "</em>";
+          ace.style.setProperty("--d", (i * 0.055).toFixed(3) + "s");
+          ace.style.setProperty("--tx", card.tx + "px");
+          ace.style.setProperty("--ty", card.ty + "px");
+          ace.style.setProperty("--rot", card.rot + "deg");
+          ace.style.setProperty("--start", (-18 + i * 4) + "deg");
+          pillspot.appendChild(ace);
+          window.setTimeout(() => ace.remove(), 1700);
+        });
+
+        for (let i = 0; i < 5; i += 1) {
+          const slash = document.createElement("span");
+          slash.className = "ace-swipe";
+          slash.style.setProperty("--d", (0.08 + i * 0.035).toFixed(3) + "s");
+          slash.style.setProperty("--y", (i - 2) * 5 + "px");
+          pillspot.appendChild(slash);
+          window.setTimeout(() => slash.remove(), 850);
+        }
+      }
+
+      function spawnCheerRibbons() {
+        const colors = ["#ff5d8f", "#ffd166", "#34d399", "#5db3e8", "#b794f6"];
+        for (let i = 0; i < 12; i += 1) {
+          const ribbon = document.createElement("span");
+          ribbon.className = "cheer-ribbon";
+          ribbon.style.left = Math.round((i / 11) * 100) + "%";
+          ribbon.style.background = colors[i % colors.length];
+          ribbon.style.setProperty("--d", (Math.random() * 0.18).toFixed(2) + "s");
+          ribbon.style.setProperty("--fall", (44 + Math.random() * 24).toFixed(0) + "px");
+          ribbon.style.setProperty("--spin", (180 + Math.random() * 260).toFixed(0) + "deg");
+          pillspot.appendChild(ribbon);
+          window.setTimeout(() => ribbon.remove(), 1600);
+        }
+      }
+
+      function spawnDodgeSlashes() {
+        for (let i = 0; i < 3; i += 1) {
+          const slash = document.createElement("span");
+          slash.className = "dodge-slash";
+          slash.style.left = 18 + i * 9 + "px";
+          slash.style.setProperty("--d", (i * 0.05).toFixed(2) + "s");
+          slash.style.setProperty("--y", i * 5 + "px");
+          pillspot.appendChild(slash);
+          window.setTimeout(() => slash.remove(), 900);
+        }
+      }
+
+      function spawnEnergyOrbs() {
+        for (let i = 0; i < 8; i += 1) {
+          const orb = document.createElement("span");
+          orb.className = "energy-orb";
+          orb.style.left = Math.round((i / 7) * 100) + "%";
+          orb.style.setProperty("--d", (i * 0.045).toFixed(2) + "s");
+          orb.style.setProperty("--x", (i - 3.5) * 7 + "px");
+          orb.style.setProperty("--y", (i % 2 ? -34 : -25) + "px");
+          pillspot.appendChild(orb);
+          window.setTimeout(() => orb.remove(), 1400);
+        }
+      }
+
+      function spawnFlagPixels() {
+        const colors = ["#ffffff", "#1d2536", "#ffd166", "#5db3e8"];
+        for (let i = 0; i < 12; i += 1) {
+          const pixel = document.createElement("span");
+          pixel.className = "flag-pixel";
+          pixel.style.left = Math.round((i / 11) * 100) + "%";
+          pixel.style.background = colors[i % colors.length];
+          pixel.style.setProperty("--d", (Math.random() * 0.18).toFixed(2) + "s");
+          pixel.style.setProperty("--fall", (38 + Math.random() * 24).toFixed(0) + "px");
+          pixel.style.setProperty("--spin", (120 + Math.random() * 240).toFixed(0) + "deg");
+          pillspot.appendChild(pixel);
+          window.setTimeout(() => pixel.remove(), 1500);
+        }
+      }
+
+      function spawnGlintShards() {
+        for (let i = 0; i < 10; i += 1) {
+          const shard = document.createElement("span");
+          shard.className = "glint-shard";
+          shard.textContent = i % 2 ? "\u25C6" : "\u2726";
+          shard.style.left = Math.round((i / 9) * 100) + "%";
+          shard.style.setProperty("--d", (Math.random() * 0.16).toFixed(2) + "s");
+          shard.style.setProperty("--x", (i - 4.5) * 6 + "px");
+          shard.style.setProperty("--y", (i % 2 ? -36 : -24) + "px");
+          pillspot.appendChild(shard);
+          window.setTimeout(() => shard.remove(), 1300);
+        }
+      }
+
+      function spawnHealPickups() {
+        for (let i = 0; i < 6; i += 1) {
+          const heart = document.createElement("span");
+          heart.className = "heal-heart";
+          heart.textContent = i % 2 ? "+" : "\u2665";
+          heart.style.left = 18 + i * 7 + "px";
+          heart.style.setProperty("--d", (i * 0.07).toFixed(2) + "s");
+          heart.style.setProperty("--x", (i - 2.5) * 5 + "px");
+          pillspot.appendChild(heart);
+          window.setTimeout(() => heart.remove(), 1500);
+        }
+      }
+
+      function spawnInspectReticle() {
+        const reticle = document.createElement("span");
+        reticle.className = "inspect-reticle";
+        reticle.innerHTML = "<i></i><i></i><i></i><i></i><b></b>";
+        pillspot.appendChild(reticle);
+        window.setTimeout(() => reticle.remove(), 1300);
+      }
+
+      function spawnJumpDust() {
+        for (let i = 0; i < 7; i += 1) {
+          const dust = document.createElement("span");
+          dust.className = "jump-dust";
+          dust.style.left = 16 + i * 6 + "px";
+          dust.style.setProperty("--d", (i * 0.035).toFixed(2) + "s");
+          dust.style.setProperty("--x", (i - 3) * 7 + "px");
+          dust.style.setProperty("--s", (0.65 + Math.random() * 0.45).toFixed(2));
+          pillspot.appendChild(dust);
+          window.setTimeout(() => dust.remove(), 900);
+        }
+      }
+
+      function spawnKartBoost() {
+        for (let i = 0; i < 8; i += 1) {
+          const streak = document.createElement("span");
+          streak.className = "boost-streak";
+          streak.style.left = 8 + i * 7 + "px";
+          streak.style.setProperty("--d", (i * 0.025).toFixed(2) + "s");
+          streak.style.setProperty("--y", (i % 3) * 5 + "px");
+          pillspot.appendChild(streak);
+          window.setTimeout(() => streak.remove(), 850);
+        }
+        for (let i = 0; i < 4; i += 1) {
+          const flame = document.createElement("span");
+          flame.className = "boost-flame";
+          flame.style.left = 14 + i * 10 + "px";
+          flame.style.setProperty("--d", (i * 0.045).toFixed(2) + "s");
+          flame.style.setProperty("--x", (i - 1.5) * 6 + "px");
+          pillspot.appendChild(flame);
+          window.setTimeout(() => flame.remove(), 900);
+        }
+      }
+
+      function spawnLootChest() {
+        const chest = document.createElement("span");
+        chest.className = "loot-chest";
+        chest.innerHTML = "<i></i><b></b>";
+        pillspot.appendChild(chest);
+        window.setTimeout(() => chest.remove(), 1500);
+
+        for (let i = 0; i < 7; i += 1) {
+          const coin = document.createElement("span");
+          coin.className = "loot-coin";
+          coin.textContent = i % 3 === 0 ? "G" : "*";
+          coin.style.left = 16 + i * 6 + "px";
+          coin.style.setProperty("--d", (0.12 + i * 0.045).toFixed(2) + "s");
+          coin.style.setProperty("--x", (i - 3) * 6 + "px");
+          pillspot.appendChild(coin);
+          window.setTimeout(() => coin.remove(), 1400);
+        }
+      }
+
+      function spawnGuidePing() {
+        const fairy = document.createElement("span");
+        fairy.className = "guide-fairy";
+        fairy.innerHTML = "<i></i><b></b>";
+        pillspot.appendChild(fairy);
+        window.setTimeout(() => fairy.remove(), 1400);
+
+        for (let i = 0; i < 3; i += 1) {
+          const ring = document.createElement("span");
+          ring.className = "guide-ring";
+          ring.style.setProperty("--d", (i * 0.16).toFixed(2) + "s");
+          pillspot.appendChild(ring);
+          window.setTimeout(() => ring.remove(), 1400);
+        }
+      }
+
+      function spawnOcarinaNotes() {
+        const notes = ["\u266A", "\u266B", "\u2669", "\u266A", "\u266B"];
+        for (let i = 0; i < notes.length; i += 1) {
+          const note = document.createElement("span");
+          note.className = "song-note";
+          note.textContent = notes[i];
+          note.style.left = 14 + i * 8 + "px";
+          note.style.setProperty("--d", (i * 0.07).toFixed(2) + "s");
+          note.style.setProperty("--x", (i - 2) * 8 + "px");
+          note.style.setProperty("--rot", (i % 2 ? 18 : -16) + "deg");
+          pillspot.appendChild(note);
+          window.setTimeout(() => note.remove(), 1500);
+        }
+      }
+
+      function spawnPortalWarp() {
+        const ring = document.createElement("span");
+        ring.className = "portal-ring";
+        ring.innerHTML = "<i></i><b></b>";
+        pillspot.appendChild(ring);
+        window.setTimeout(() => ring.remove(), 1500);
+
+        for (let i = 0; i < 8; i += 1) {
+          const spark = document.createElement("span");
+          spark.className = "portal-spark";
+          spark.style.left = 12 + i * 6 + "px";
+          spark.style.setProperty("--d", (i * 0.045).toFixed(2) + "s");
+          spark.style.setProperty("--x", (i - 3.5) * 7 + "px");
+          spark.style.setProperty("--y", (i % 2 ? -34 : -22) + "px");
+          pillspot.appendChild(spark);
+          window.setTimeout(() => spark.remove(), 1300);
+        }
+      }
+
+      function spawnQuestMarker() {
+        const mark = document.createElement("span");
+        mark.className = "quest-mark";
+        mark.textContent = "!";
+        pillspot.appendChild(mark);
+        window.setTimeout(() => mark.remove(), 1400);
+
+        for (let i = 0; i < 6; i += 1) {
+          const bit = document.createElement("span");
+          bit.className = "quest-bit";
+          bit.textContent = i % 2 ? "?" : "!";
+          bit.style.left = 15 + i * 7 + "px";
+          bit.style.setProperty("--d", (0.08 + i * 0.045).toFixed(2) + "s");
+          bit.style.setProperty("--x", (i - 2.5) * 6 + "px");
+          pillspot.appendChild(bit);
+          window.setTimeout(() => bit.remove(), 1350);
+        }
+      }
+
+      function spawnRhythmBurst() {
+        for (let i = 0; i < 5; i += 1) {
+          const bar = document.createElement("span");
+          bar.className = "rhythm-bar";
+          bar.style.left = 17 + i * 6 + "px";
+          bar.style.setProperty("--d", (i * 0.04).toFixed(2) + "s");
+          bar.style.setProperty("--h", 8 + (i % 3) * 6 + "px");
+          pillspot.appendChild(bar);
+          window.setTimeout(() => bar.remove(), 1050);
+        }
+        const notes = ["\u266B", "\u266A", "\u266C", "\u2669"];
+        for (let i = 0; i < notes.length; i += 1) {
+          const note = document.createElement("span");
+          note.className = "rhythm-note";
+          note.textContent = notes[i];
+          note.style.left = 15 + i * 11 + "px";
+          note.style.setProperty("--d", (0.12 + i * 0.055).toFixed(2) + "s");
+          note.style.setProperty("--x", (i - 1.5) * 8 + "px");
+          pillspot.appendChild(note);
+          window.setTimeout(() => note.remove(), 1400);
+        }
+      }
+
+      function spawnTimeStop() {
+        const clock = document.createElement("span");
+        clock.className = "time-clock";
+        clock.innerHTML = "<i></i><b></b>";
+        pillspot.appendChild(clock);
+        window.setTimeout(() => clock.remove(), 1500);
+
+        for (let i = 0; i < 10; i += 1) {
+          const tick = document.createElement("span");
+          tick.className = "time-tick";
+          tick.style.setProperty("--d", (i * 0.035).toFixed(2) + "s");
+          tick.style.setProperty("--rot", i * 36 + "deg");
+          pillspot.appendChild(tick);
+          window.setTimeout(() => tick.remove(), 1350);
+        }
+      }
+
+      function clearAnimeParticles() {
+        pillspot.querySelectorAll(ANIME_PARTICLE_CLASSES.map((name) => "." + name).join(",")).forEach((node) => node.remove());
+      }
+
+      function addAnimeNode(className, options = {}) {
+        const node = document.createElement("span");
+        node.className = className;
+        if (options.html) node.innerHTML = options.html;
+        if (options.text) node.textContent = options.text;
+        if (options.style) Object.entries(options.style).forEach(([name, value]) => node.style.setProperty(name, value));
+        pillspot.appendChild(node);
+        window.setTimeout(() => node.remove(), options.life || 2000);
+        return node;
+      }
+
+      function spawnAnimeProps(name) {
+        if (name === "adapt") {
+          addAnimeNode("mh-wheel", { html: wheelSVG(), life: 1950 });
+          for (let i = 0; i < 7; i += 1) {
+            addAnimeNode("adapt-spark", {
+              style: {
+                left: 14 + i * 4 + "px",
+                "--d": (0.2 + Math.random() * 0.5).toFixed(2) + "s",
+                "--x": (i - 3) * 6 + "px",
+                "--y": (-14 - Math.random() * 14).toFixed(0) + "px"
+              },
+              life: 1500
+            });
+          }
+        }
+
+        if (name === "getsuga") {
+          addAnimeNode("gt-sword", { html: swordSVG(), life: 1200 });
+          addAnimeNode("gt-cres", { html: crescentSVG(), life: 1500 });
+          for (let i = 0; i < 7; i += 1) {
+            addAnimeNode("gt-spark", {
+              style: {
+                left: 16 + i * 4 + "px",
+                "--d": (0.5 + i * 0.04).toFixed(2) + "s",
+                "--x": 20 + i * 7 + "px",
+                "--y": ((i % 2 ? -1 : 1) * (4 + Math.random() * 7)).toFixed(0) + "px"
+              },
+              life: 1500
+            });
+          }
+        }
+
+        if (name === "cyclops") {
+          addAnimeNode("optic-visor", { life: 1150 });
+          for (let i = 0; i < 2; i += 1) {
+            addAnimeNode("optic-beam", {
+              style: {
+                bottom: "calc(100% + " + (i === 0 ? 15 : 11) + "px)",
+                "--d": (0.12 + i * 0.05).toFixed(2) + "s"
+              },
+              life: 1100
+            });
+          }
+          for (let i = 0; i < 6; i += 1) {
+            addAnimeNode("optic-impact", {
+              style: {
+                left: 88 + (i % 3) * 8 + "px",
+                bottom: "calc(100% + " + (10 + (i % 2) * 4) + "px)",
+                "--d": (0.34 + i * 0.05).toFixed(2) + "s"
+              },
+              life: 1100
+            });
+          }
+        }
+
+        if (name === "instinct") {
+          const spriteHtml = flip.innerHTML;
+          for (let i = 0; i < 4; i += 1) {
+            addAnimeNode("ui-ghost", {
+              html: spriteHtml,
+              style: {
+                "--d": (i * 0.09).toFixed(2) + "s",
+                "--x": (i % 2 ? 1 : -1) * (12 + i * 7) + "px"
+              },
+              life: 1300
+            });
+          }
+          for (let i = 0; i < 9; i += 1) {
+            addAnimeNode("ui-spark", {
+              style: {
+                left: 12 + i * 4 + "px",
+                "--d": (Math.random() * 0.6).toFixed(2) + "s",
+                "--x": (i - 4) * 5 + "px",
+                "--y": (-12 - Math.random() * 14).toFixed(0) + "px"
+              },
+              life: 1500
+            });
+          }
+        }
+
+        if (name === "saiyan") {
+          addAnimeNode("ss-aura", { html: '<span class="ss-frame ss-f0">' + flameSVG(0) + '</span><span class="ss-frame ss-f1">' + flameSVG(1) + "</span>", life: 2000 });
+          addAnimeNode("ss-flash", { life: 600 });
+          for (let i = 0; i < 14; i += 1) {
+            addAnimeNode("ss-spark", {
+              style: {
+                left: (8 + i * 2.6).toFixed(0) + "px",
+                "--d": (Math.random() * 1.1).toFixed(2) + "s",
+                "--x": (i - 7) * 4 + "px",
+                "--y": (-26 - Math.random() * 28).toFixed(0) + "px"
+              },
+              life: 2200
+            });
+          }
+        }
+
+        if (name === "fuga") {
+          addAnimeNode("fuga-blast", { html: '<span class="fuga-frame fuga-f0">' + fireCloudSVG(0) + '</span><span class="fuga-frame fuga-f1">' + fireCloudSVG(1) + "</span>", life: 1750 });
+          for (let i = 0; i < 11; i += 1) {
+            addAnimeNode("fuga-ember", {
+              style: {
+                left: 40 + i * 4 + "px",
+                bottom: "calc(100% + " + (3 + (i % 3) * 6) + "px)",
+                "--d": (0.15 + Math.random() * 0.5).toFixed(2) + "s",
+                "--x": (24 + Math.random() * 30).toFixed(0) + "px",
+                "--y": ((i % 2 ? -1 : 1) * (6 + Math.random() * 14)).toFixed(0) + "px"
+              },
+              life: 1700
+            });
+          }
+        }
+
+        if (name === "gin") {
+          addAnimeNode("gin-eliza", { html: elizaSVG(), life: 1650 });
+          for (let i = 0; i < 3; i += 1) {
+            addAnimeNode("gin-mark", {
+              text: "...",
+              style: { left: 16 + i * 11 + "px", "--d": (i * 0.2).toFixed(2) + "s" },
+              life: 1500
+            });
+          }
+        }
+
+        if (name === "hollow") {
+          addAnimeNode("hp-orb hp-red", { life: 1300 });
+          addAnimeNode("hp-orb hp-blue", { life: 1300 });
+          addAnimeNode("hp-purple", { life: 1500 });
+          addAnimeNode("hp-beam", { life: 1400 });
+          for (let i = 0; i < 10; i += 1) {
+            addAnimeNode("hp-spark", {
+              style: {
+                left: 32 + i * 5 + "px",
+                bottom: "calc(100% + " + (5 + (i % 4) * 5) + "px)",
+                "--d": (0.58 + i * 0.035).toFixed(2) + "s",
+                "--x": 22 + i * 4 + "px",
+                "--y": ((i % 2 ? -1 : 1) * (4 + Math.random() * 8)).toFixed(0) + "px"
+              },
+              life: 1500
+            });
+          }
+        }
+
+        if (name === "cowl") {
+          addAnimeNode("cowl-aura", { life: 1550 });
+          for (let i = 0; i < 9; i += 1) {
+            addAnimeNode("cowl-bolt", {
+              html: boltSVG(i % 2 === 0 ? "#5dff7a" : "#ff5a5a"),
+              style: {
+                left: 7 + i * 4 + "px",
+                bottom: "calc(100% - " + (2 + (i % 4) * 9) + "px)",
+                transform: "rotate(" + ((i % 2 ? 1 : -1) * (10 + i * 7)) + "deg)",
+                "--d": (0.08 + i * 0.11).toFixed(2) + "s"
+              },
+              life: 1500
+            });
+          }
+        }
+
+        if (name === "stand") {
+          addAnimeNode("stand-body", { html: standSVG(), life: 1950 });
+          for (let i = 0; i < 6; i += 1) {
+            addAnimeNode("stand-fist", {
+              style: {
+                left: 44 + i * 5 + "px",
+                bottom: "calc(100% + " + (6 + (i % 3) * 7) + "px)",
+                "--d": (0.5 + i * 0.08).toFixed(2) + "s"
+              },
+              life: 1900
+            });
+          }
+          for (let i = 0; i < 4; i += 1) {
+            addAnimeNode("ora-bit", {
+              text: "ORA",
+              style: {
+                left: 50 + i * 9 + "px",
+                bottom: "calc(100% + " + (14 + i * 5) + "px)",
+                "--d": (0.6 + i * 0.13).toFixed(2) + "s"
+              },
+              life: 1900
+            });
+          }
+        }
+
+        if (name === "rengoku") {
+          addAnimeNode("rg-sword", { html: katanaSVG(), life: 1300 });
+          addAnimeNode("rg-slash", { html: flameSlashSVG(), life: 1600 });
+          for (let i = 0; i < 10; i += 1) {
+            addAnimeNode("rg-ember", {
+              style: {
+                left: 30 + i * 5 + "px",
+                bottom: "calc(100% + " + (4 + (i % 3) * 7) + "px)",
+                "--d": (0.42 + i * 0.05).toFixed(2) + "s",
+                "--x": (24 + Math.random() * 28).toFixed(0) + "px",
+                "--y": ((i % 2 ? -1 : 1) * (4 + Math.random() * 12)).toFixed(0) + "px"
+              },
+              life: 1600
+            });
+          }
+        }
+
+        if (name === "nika") {
+          addAnimeNode("nika-jacket", { html: jacketSVG(), life: 1700 });
+          for (let i = 0; i < 3; i += 1) {
+            addAnimeNode("nika-ring", { style: { "--d": (i * 0.22).toFixed(2) + "s" }, life: 1700 });
+          }
+          for (let i = 0; i < 6; i += 1) {
+            addAnimeNode("nika-pop", {
+              style: {
+                left: 12 + i * 5 + "px",
+                "--d": (Math.random() * 0.5).toFixed(2) + "s",
+                "--x": (i - 3) * 7 + "px",
+                "--y": (-16 - Math.random() * 16).toFixed(0) + "px"
+              },
+              life: 1700
+            });
+          }
+        }
+
+        if (name === "domain") {
+          ["dom-sphere", "dom-sphere dom-sphere2", "dom-eye"].forEach((className) => addAnimeNode(className, { life: 1950 }));
+          for (let i = 0; i < 5; i += 1) {
+            addAnimeNode("dom-hand", {
+              html: handSVG(i % 2 ? "#b8a0a8" : "#9a8088"),
+              style: {
+                left: 8 + i * 9 + "px",
+                bottom: "calc(100% + " + (i % 3) * 11 + "px)",
+                "--d": (0.4 + i * 0.12).toFixed(2) + "s",
+                "--r": (i % 2 ? 1 : -1) * 14 + "deg"
+              },
+              life: 1900
+            });
+          }
+        }
+
+        if (name === "subaru") {
+          addAnimeNode("rbd-clock", { html: clockSVG(), life: 1700 });
+          addAnimeNode("rbd-hand", { html: handSVG("#120a16"), life: 1700 });
+          for (let i = 0; i < 8; i += 1) {
+            addAnimeNode("rbd-mist", {
+              style: {
+                left: 6 + i * 4 + "px",
+                bottom: "calc(100% - " + (4 + (i % 3) * 8) + "px)",
+                "--d": (Math.random() * 0.6).toFixed(2) + "s",
+                "--y": (-12 - Math.random() * 14).toFixed(0) + "px"
+              },
+              life: 1700
+            });
+          }
+        }
+
+        if (name === "rika") {
+          addAnimeNode("rika-body", { html: rikaSVG(), life: 1850 });
+          addAnimeNode("rika-beam", { life: 1800 });
+          for (let i = 0; i < 7; i += 1) {
+            addAnimeNode("rika-heart", {
+              text: "\u2665",
+              style: {
+                left: 52 + i * 5 + "px",
+                bottom: "calc(100% + " + (6 + (i % 3) * 7) + "px)",
+                "--d": (0.5 + i * 0.06).toFixed(2) + "s",
+                "--x": 18 + i * 5 + "px"
+              },
+              life: 1800
+            });
+          }
+        }
+
+        if (name === "pain") {
+          addAnimeNode("pn-planet", { html: planetSVG(), life: 1950 });
+          for (let i = 0; i < 9; i += 1) {
+            addAnimeNode("pn-rock", {
+              html: rockSVG(),
+              style: { left: 8 + i * 6 + "px", "--d": (0.2 + i * 0.06).toFixed(2) + "s", "--x": (4 - i) * 3 + "px" },
+              life: 1900
+            });
+          }
+        }
+
+        if (name === "harley") {
+          addAnimeNode("hq-mallet", { html: malletSVG(), life: 1100 });
+          addAnimeNode("hq-bam", { text: "BAM!", life: 1100 });
+          for (let i = 0; i < 6; i += 1) {
+            addAnimeNode("hq-star", {
+              text: i % 2 ? "\u2726" : "\u2605",
+              style: {
+                left: 30 + i * 6 + "px",
+                bottom: "calc(100% + " + (2 + (i % 3) * 6) + "px)",
+                "--d": (0.42 + i * 0.04).toFixed(2) + "s",
+                "--x": 10 + i * 5 + "px",
+                "--y": (i % 2 ? -1 : 1) * 10 + "px"
+              },
+              life: 1200
+            });
+          }
+        }
+
+        if (name === "zoro") {
+          for (let i = 0; i < 3; i += 1) {
+            addAnimeNode("zo-slash zo-" + i, { style: { "--d": (i * 0.08).toFixed(2) + "s" }, life: 1000 });
+          }
+          addAnimeNode("zo-flash", { life: 700 });
+        }
+
+        if (name === "saitama") {
+          addAnimeNode("st-fist", { html: fistSVG(), life: 1000 });
+          addAnimeNode("st-shock", { life: 1100 });
+          for (let i = 0; i < 6; i += 1) {
+            addAnimeNode("st-line", {
+              style: {
+                bottom: "calc(100% - " + (i % 3) * 9 + "px)",
+                "--d": (0.2 + i * 0.03).toFixed(2) + "s"
+              },
+              life: 1100
+            });
+          }
+        }
+
+        if (name === "itachi") {
+          addAnimeNode("it-eye", { html: sharinganSVG(), life: 1850 });
+          addAnimeNode("it-moon", { life: 1850 });
+          for (let i = 0; i < 6; i += 1) {
+            addAnimeNode("it-crow", {
+              html: crowSVG(),
+              style: {
+                left: 8 + i * 9 + "px",
+                bottom: "calc(100% + " + (4 + (i % 3) * 9) + "px)",
+                "--d": (Math.random() * 0.7).toFixed(2) + "s",
+                "--x": -18 - i * 4 + "px",
+                "--y": ((i % 2 ? -1 : 1) * (6 + Math.random() * 10)).toFixed(0) + "px"
+              },
+              life: 1850
+            });
+          }
+        }
+
+        if (name === "susanoo") {
+          addAnimeNode("su-body", { html: susanooSVG(), life: 2000 });
+          addAnimeNode("su-slash", { life: 1950 });
+          for (let i = 0; i < 9; i += 1) {
+            addAnimeNode("su-spark", {
+              style: {
+                left: 54 + i * 5 + "px",
+                bottom: "calc(100% + " + (4 + (i % 3) * 8) + "px)",
+                "--d": (0.6 + i * 0.04).toFixed(2) + "s",
+                "--x": 18 + i * 5 + "px",
+                "--y": ((i % 2 ? -1 : 1) * (5 + Math.random() * 9)).toFixed(0) + "px"
+              },
+              life: 1950
+            });
+          }
+        }
+
+        if (name === "finalflash") {
+          addAnimeNode("ff-charge", { life: 1000 });
+          addAnimeNode("ff-beam", { life: 1850 });
+          addAnimeNode("ff-core", { life: 1850 });
+          for (let i = 0; i < 12; i += 1) {
+            addAnimeNode("ff-spark", {
+              style: {
+                left: 36 + i * 2 + "px",
+                bottom: "calc(100% + " + (4 + (i % 4) * 6) + "px)",
+                "--d": (0.7 + Math.random() * 0.6).toFixed(2) + "s",
+                "--x": (24 + Math.random() * 28).toFixed(0) + "px",
+                "--y": ((i % 2 ? -1 : 1) * (4 + Math.random() * 12)).toFixed(0) + "px"
+              },
+              life: 1850
+            });
+          }
+        }
+
+        if (name === "zawarudo") {
+          addAnimeNode("zw-freeze", { life: 2050 });
+          addAnimeNode("zw-dio", { html: standDioSVG(), life: 2050 });
+          for (let i = 0; i < 7; i += 1) {
+            addAnimeNode("zw-tick", {
+              text: "|",
+              style: {
+                left: 10 + i * 14 + "px",
+                bottom: "calc(100% + " + (8 + (i % 2) * 10) + "px)",
+                "--d": (0.3 + i * 0.05).toFixed(2) + "s"
+              },
+              life: 2050
+            });
+          }
+        }
+
+        if (name === "exodia") {
+          addAnimeNode("ex-body", { html: exodiaSVG(), life: 2050 });
+          addAnimeNode("ex-flash", { life: 1200 });
+          for (let i = 0; i < 5; i += 1) {
+            addAnimeNode("ex-card", {
+              style: {
+                left: 8 + i * 7 + "px",
+                "--d": (0.1 + i * 0.1).toFixed(2) + "s",
+                "--r": (i - 2) * 9 + "deg"
+              },
+              life: 2050
+            });
+          }
+          for (let i = 0; i < 8; i += 1) {
+            addAnimeNode("ex-ray", {
+              style: {
+                left: 4 + i * 7 + "px",
+                "--d": (0.6 + i * 0.04).toFixed(2) + "s"
+              },
+              life: 2050
+            });
+          }
+        }
+
+        if (name === "kqueen") {
+          addAnimeNode("kq-body", { html: killerQueenSVG(), life: 1850 });
+          addAnimeNode("kq-blast", { life: 1800 });
+          addAnimeNode("kq-ring", { life: 1800 });
+          for (let i = 0; i < 10; i += 1) {
+            addAnimeNode("kq-bit", {
+              style: {
+                left: 78 + (i % 4) * 4 + "px",
+                bottom: "calc(100% + " + (6 + (i % 3) * 7) + "px)",
+                "--d": (0.72 + i * 0.02).toFixed(2) + "s",
+                "--x": ((i % 2 ? 1 : -1) * (10 + Math.random() * 22)).toFixed(0) + "px",
+                "--y": (-10 - Math.random() * 20).toFixed(0) + "px"
+              },
+              life: 1800
+            });
+          }
+        }
+
+        if (name === "zenitsu") {
+          addAnimeNode("zn-sword", { html: thunderSVG("#ffe24a", "#fff"), life: 1300 });
+          addAnimeNode("zn-dash", { life: 1700 });
+          for (let i = 0; i < 8; i += 1) {
+            addAnimeNode("zn-bolt", {
+              html: thunderSVG(i % 3 === 0 ? "#fff6c0" : "#ffe24a", "#ffffff"),
+              style: {
+                left: 16 + i * 9 + "px",
+                bottom: "calc(100% - " + (2 + (i % 4) * 9) + "px)",
+                transform: "rotate(" + ((i % 2 ? 1 : -1) * (12 + i * 6)) + "deg)",
+                "--d": (0.1 + i * 0.1).toFixed(2) + "s"
+              },
+              life: 1700
+            });
+          }
+        }
+      }
+
+      function clearAlphaClasses() {
+        clearAnimeParticles();
+        root.classList.remove(...ALPHA_CLASSES, "letter-charm");
+        root.style.removeProperty("--secret-color");
       }
 
       function clearEffectTimers() {
@@ -1028,6 +2409,10 @@
         window.clearTimeout(konamiTimer);
         window.clearTimeout(berryTimer);
         window.clearTimeout(summitTimer);
+        window.clearTimeout(secretWaveTimer);
+        window.clearTimeout(healTimer);
+        window.clearTimeout(starTimer);
+        window.clearTimeout(letterCharmTimer);
         window.clearTimeout(hurtTimer);
         window.clearTimeout(wakeTimerA);
         window.clearTimeout(wakeTimerB);
@@ -1045,10 +2430,14 @@
           "berry",
           "konami",
           "summit",
+          "secret-wave",
+          "heal",
+          "star-power",
           "startle",
           "hp-drop",
           "critical-enter"
         );
+        clearAlphaClasses();
       }
 
       function applyBaseClasses() {
@@ -1091,11 +2480,28 @@
         vHp.textContent = String(state.hp);
 
         const usage = Math.max(0, 100 - state.hp);
+        const adjusted = Math.min(999, usage + (state.health === "heavy" ? 8 : state.health === "critical" ? 14 : 0));
         const tokens = Math.round((usage / 100) * 190000);
         vPct.textContent = "~" + usage + "%";
+        vAdj.textContent = "~" + adjusted + "%";
         vTokens.textContent = "~" + fmtTok(tokens) + " / 190k";
         vMsgs.textContent = String(6 + Math.round(usage / 4));
+        vDup.textContent = state.health === "fresh" ? "none" : "~" + fmtTok(Math.max(0, tokens * 0.08)) + " tok";
+        vDup.classList.toggle("warn", state.health === "heavy" || state.health === "critical");
+        vBurn.textContent = state.streaming ? "~1.2k/min" : "~0/min";
+        vSplit.textContent = Math.max(18, 54 - Math.round(usage / 3)) + "% / " + Math.min(82, 46 + Math.round(usage / 3)) + "%";
+        vTop.textContent = "#" + Math.max(1, Math.round(usage / 18) + 1) + " (AI) · ~" + fmtTok(Math.max(900, tokens * 0.18));
         vAge.textContent = state.panelOpen ? "test harness" : "preview only";
+        const rank = 1 + Math.floor((100 - state.hp) / 25);
+        const xp = Math.min(99, Math.max(0, Math.round((100 - state.hp) * 0.8)));
+        vLv.textContent = "LV " + rank;
+        classTag.textContent = state.health === "critical" ? "Handoff Scout" : state.health === "heavy" ? "Load Watcher" : "Context Keeper";
+        xpFill.style.width = xp + "%";
+        vXp.textContent = xp + "%";
+        sChats.textContent = String(12 + Math.round(usage / 12));
+        sHand.textContent = String(3 + (state.health === "critical" ? 1 : 0));
+        sSaved.textContent = "~" + fmtTok(124000 + tokens * 0.5);
+        sHero.textContent = "~" + fmtTok(124000 + tokens * 0.5);
         setSegments(pillSegs, state.hp);
         setSegments(panelSegs, state.hp);
 
@@ -1186,10 +2592,12 @@
         const restoreMode = state.mode;
         state.overlayMode = "wave";
         render();
+        clearAlphaClasses();
         root.classList.remove("berry");
         void root.offsetWidth;
-        root.classList.add("berry");
+        root.classList.add("berry", "alpha-berry");
         spawnStrawberry();
+        spawnBerryBurst();
         if (state.health !== "critical") spawnHearts(state.health === "heavy" ? 1 : 2);
         showBubble(pick([
           "strawberry break! \u{1F353}",
@@ -1198,11 +2606,409 @@
           "berry nice."
         ]), 3000);
         berryTimer = window.setTimeout(() => {
-          root.classList.remove("berry");
+          root.classList.remove("berry", "alpha-berry");
           state.overlayMode = null;
           state.mode = restoreMode;
           render();
         }, 1450);
+      }
+
+      function runSecretWave() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        root.classList.remove("secret-wave");
+        void root.offsetWidth;
+        root.classList.add("secret-wave");
+        spawnWakeMark("HI");
+        showBubble("Secret wave unlocked.", 2600);
+        secretWaveTimer = window.setTimeout(() => {
+          root.classList.remove("secret-wave");
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1400);
+      }
+
+      function runHeal() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        clearAlphaClasses();
+        root.classList.remove("heal");
+        void root.offsetWidth;
+        root.classList.add("heal", "alpha-heal");
+        spawnHealSparks();
+        spawnHealPickups();
+        if (state.health !== "critical") spawnHearts(1);
+        showBubble("HP refill.", 2800);
+        healTimer = window.setTimeout(() => {
+          root.classList.remove("heal", "alpha-heal");
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1450);
+      }
+
+      function runStar() {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        root.classList.remove("star-power");
+        void root.offsetWidth;
+        root.classList.add("star-power");
+        spawnStarBits();
+        showBubble("Star power!", 2800);
+        starTimer = window.setTimeout(() => {
+          root.classList.remove("star-power");
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1650);
+      }
+
+      function runAces() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#f4c978");
+        void root.offsetWidth;
+        root.classList.add("alpha-aces");
+        spawnAceCards();
+        showBubble("Four aces!", 2600);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1500);
+      }
+
+      function runFlag() {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ffd166");
+        void root.offsetWidth;
+        root.classList.add("alpha-flag", "celebrate");
+        spawnSummitFlag();
+        spawnFlagPixels();
+        showBubble("Checkpoint clear!", 2600);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1650);
+      }
+
+      function runGlint() {
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ffd166");
+        void root.offsetWidth;
+        root.classList.add("alpha-glint");
+        spawnGlintShards();
+        showBubble("Rare glint found.", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          render();
+        }, 1250);
+      }
+
+      function runLetterCharm(letter, line, color) {
+        clearAlphaClasses();
+        void root.offsetWidth;
+        root.style.setProperty("--secret-color", color || "#5db3e8");
+        root.classList.add("letter-charm");
+        spawnLetterBits(letter, color || "#5db3e8");
+        showBubble(line, 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          root.classList.remove("letter-charm");
+          root.style.removeProperty("--secret-color");
+          render();
+        }, 1250);
+      }
+
+      function runCheer(line) {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        clearAlphaClasses();
+        root.classList.remove("celebrate");
+        void root.offsetWidth;
+        root.style.setProperty("--secret-color", "#ffd166");
+        root.classList.add("celebrate", "alpha-cheer");
+        spawnCheerRibbons();
+        showBubble(line, 2600);
+        effectTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1500);
+      }
+
+      function runDodge() {
+        const restoreMode = state.mode;
+        const restoreOverlayMode = state.overlayMode;
+        state.overlayMode = null;
+        state.mode = "hurt";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ffffff");
+        void root.offsetWidth;
+        root.classList.add("alpha-dodge");
+        spawnDodgeSlashes();
+        spawnWakeMark("MISS");
+        showBubble("Dodge practice.", 2200);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.mode = restoreMode;
+          state.overlayMode = restoreOverlayMode;
+          render();
+        }, 950);
+      }
+
+      function runEnergy() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#34d399");
+        void root.offsetWidth;
+        root.classList.add("alpha-energy");
+        spawnEnergyOrbs();
+        showBubble("Energy charge.", 2600);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1450);
+      }
+
+      function runInspect() {
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#5db3e8");
+        void root.offsetWidth;
+        root.classList.add("alpha-inspect");
+        spawnInspectReticle();
+        showBubble("Scan complete.", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          render();
+        }, 1250);
+      }
+
+      function runJump() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ffd166");
+        void root.offsetWidth;
+        root.classList.add("alpha-jump");
+        spawnJumpDust();
+        showBubble("Jump pad!", 2200);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1150);
+      }
+
+      function runKart() {
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#5db3e8");
+        void root.offsetWidth;
+        root.classList.add("alpha-kart");
+        spawnKartBoost();
+        showBubble("Mini turbo!", 2200);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          render();
+        }, 1150);
+      }
+
+      function runLoot() {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ffd166");
+        void root.offsetWidth;
+        root.classList.add("alpha-loot", "celebrate");
+        spawnLootChest();
+        showBubble("Loot chest opened!", 2600);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1550);
+      }
+
+      function runGuide() {
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#9ddcff");
+        void root.offsetWidth;
+        root.classList.add("alpha-guide");
+        spawnGuidePing();
+        showBubble("Hey! Listen ping.", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          render();
+        }, 1300);
+      }
+
+      function runOcarina() {
+        const restoreMode = state.mode;
+        state.overlayMode = "wave";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#b794f6");
+        void root.offsetWidth;
+        root.classList.add("alpha-ocarina");
+        spawnOcarinaNotes();
+        showBubble("Song learned.", 2600);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1450);
+      }
+
+      function runPortal() {
+        const restoreMode = state.mode;
+        state.overlayMode = "watch";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#26e0e0");
+        void root.offsetWidth;
+        root.classList.add("alpha-portal");
+        spawnPortalWarp();
+        showBubble("Portal opened.", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1400);
+      }
+
+      function runQuest() {
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ffd166");
+        void root.offsetWidth;
+        root.classList.add("alpha-quest");
+        spawnQuestMarker();
+        showBubble("Quest marker!", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          render();
+        }, 1300);
+      }
+
+      function runRhythm() {
+        const restoreMode = state.mode;
+        state.overlayMode = "cheer";
+        render();
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#ff5d8f");
+        void root.offsetWidth;
+        root.classList.add("alpha-rhythm");
+        spawnRhythmBurst();
+        showBubble("Beat hit!", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, 1350);
+      }
+
+      function runTimeStop() {
+        clearAlphaClasses();
+        root.style.setProperty("--secret-color", "#f4c978");
+        void root.offsetWidth;
+        root.classList.add("alpha-time");
+        spawnTimeStop();
+        showBubble("Time stop!", 2400);
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          render();
+        }, 1400);
+      }
+
+      function runAnimeEffect(name) {
+        const config = ANIME_EFFECTS[name];
+        if (!config) return;
+        const restoreMode = state.mode;
+        state.overlayMode = config.pose;
+        render();
+        clearAlphaClasses();
+        window.clearTimeout(letterCharmTimer);
+        root.classList.remove(config.className);
+        void root.offsetWidth;
+        root.classList.add(config.className);
+        spawnAnimeProps(name);
+        showBubble(config.line, Math.max(2200, config.duration + 350));
+        letterCharmTimer = window.setTimeout(() => {
+          clearAlphaClasses();
+          state.overlayMode = null;
+          state.mode = restoreMode;
+          render();
+        }, config.duration);
+      }
+
+      function runAlphaEffect(key) {
+        const effect = ALPHA_EFFECTS[key];
+        if (!effect) return;
+
+        if (effect.action === "anime") runAnimeEffect(effect.effect);
+        if (effect.action === "aces") runAces();
+        if (effect.action === "letter") {
+          runLetterCharm(key.toUpperCase(), effect.line, effect.color);
+        }
+        if (effect.action === "berry") runBerry();
+        if (effect.action === "cheer") runCheer(effect.line);
+        if (effect.action === "dodge") runDodge();
+        if (effect.action === "energy") runEnergy();
+        if (effect.action === "flag") runFlag();
+        if (effect.action === "glint") runGlint();
+        if (effect.action === "inspect") runInspect();
+        if (effect.action === "jump") runJump();
+        if (effect.action === "kart") runKart();
+        if (effect.action === "loot") runLoot();
+        if (effect.action === "guide") runGuide();
+        if (effect.action === "ocarina") runOcarina();
+        if (effect.action === "portal") runPortal();
+        if (effect.action === "quest") runQuest();
+        if (effect.action === "rhythm") runRhythm();
+        if (effect.action === "time") runTimeStop();
+        if (effect.action === "hurt") {
+          runHurt();
+          spawnWakeMark("!");
+          showBubble(effect.line, 2200);
+        }
+        if (effect.action === "summit") runSummit();
+        if (effect.action === "heal") runHeal();
+        if (effect.action === "konami") runKonami();
+        if (effect.action === "level") {
+          runCheer(effect.line);
+          spawnStarBits();
+        }
+        if (effect.action === "mode") {
+          setMode(effect.mode);
+          showBubble(effect.line, 2200);
+        }
+        if (effect.action === "pet") runPet();
+        if (effect.action === "star") runStar();
+        if (effect.action === "secret-wave") runSecretWave();
       }
 
       function runKonami() {
@@ -1311,6 +3117,23 @@
         });
       }
 
+      function buildAlphaControls() {
+        Object.entries(ALPHA_EFFECTS).forEach(([key, effect]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "alpha-key";
+          button.title = "Shortcut: hold Space, then tap " + key.toUpperCase();
+          button.innerHTML = "<strong>" + key.toUpperCase() + "</strong><span>" + effect.label + "</span>";
+          button.addEventListener("click", () => {
+            onManualChange(() => {
+              render();
+              runAlphaEffect(key);
+            });
+          });
+          alphaControls.appendChild(button);
+        });
+      }
+
       function galleryThumbPose(modeKey) {
         if (modeKey === "patrol") return "fresh";
         return typeof MODE_PRESETS[modeKey].pose === "function" ? MODE_PRESETS[modeKey].pose("fresh") : MODE_PRESETS[modeKey].pose;
@@ -1334,11 +3157,126 @@
         });
       }
 
+      function alphaKeyFromEvent(event) {
+        if (/^Key[A-Z]$/.test(event.code || "")) return event.code.slice(3).toLowerCase();
+        return event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      }
+
+      function isEditableTarget(target) {
+        const node = target;
+        if (!node || !node.tagName) return false;
+        const tag = node.tagName;
+        return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || node.isContentEditable === true;
+      }
+
+      function dispatchSpaceAlphaShortcut(key) {
+        const normalized = key.toLowerCase();
+        const spaceDown = new KeyboardEvent("keydown", {
+          key: " ",
+          code: "Space",
+          bubbles: true,
+          cancelable: true
+        });
+        const letterDown = new KeyboardEvent("keydown", {
+          key: normalized,
+          code: "Key" + normalized.toUpperCase(),
+          bubbles: true,
+          cancelable: true
+        });
+        const spaceUp = new KeyboardEvent("keyup", {
+          key: " ",
+          code: "Space",
+          bubbles: true,
+          cancelable: true
+        });
+        window.dispatchEvent(spaceDown);
+        window.dispatchEvent(letterDown);
+        window.dispatchEvent(spaceUp);
+        return letterDown.defaultPrevented;
+      }
+
+      async function testAlphaShortcut(key) {
+        const normalized = key.toLowerCase();
+        const effect = ALPHA_EFFECTS[normalized];
+        const expectedClass = effect && effect.action === "anime" ? ANIME_EFFECTS[effect.effect].className : null;
+        stopTransientState();
+        render();
+        const prevented = dispatchSpaceAlphaShortcut(normalized);
+        await wait(ALPHA_TEST_ASSERT_MS);
+        const classesDuring = Array.from(root.classList);
+        const active = expectedClass ? classesDuring.includes(expectedClass) : false;
+        const particleCount = pillspot.querySelectorAll(ANIME_PARTICLE_CLASSES.map((name) => "." + name).join(",")).length;
+        const line = speech.hidden ? "" : speechText.textContent;
+        await wait(Math.max(0, ALPHA_TEST_DISPLAY_MS - ALPHA_TEST_ASSERT_MS));
+        stopTransientState();
+        render();
+        return {
+          key: normalized,
+          label: effect ? effect.label : "",
+          prevented,
+          expectedClass,
+          active,
+          particleCount,
+          line,
+          classesDuring
+        };
+      }
+
+      async function runAlphaShortcutTests(keys = ALPHA_TEST_KEYS) {
+        const testKeys = keys.map((key) => String(key).toLowerCase()).filter((key) => ALPHA_EFFECTS[key]);
+        if (alphaTestButton) {
+          alphaTestButton.disabled = true;
+          alphaTestButton.textContent = "Testing A-Z...";
+        }
+        state.statusLabel = "A-Z shortcut tests running";
+        state.alphaShortcutTestRunning = true;
+        render();
+        const results = [];
+        try {
+          for (let index = 0; index < testKeys.length; index += 1) {
+            const key = testKeys[index];
+            state.statusLabel = "Testing Space+" + key.toUpperCase() + " (" + (index + 1) + "/" + testKeys.length + ")";
+            if (alphaTestButton) {
+              alphaTestButton.textContent = "Testing " + key.toUpperCase() + " (" + (index + 1) + "/" + testKeys.length + ")...";
+            }
+            render();
+            results.push(await testAlphaShortcut(key));
+          }
+        } finally {
+          if (alphaTestButton) {
+            alphaTestButton.disabled = false;
+            alphaTestButton.textContent = "Run A-Z shortcut tests";
+          }
+          state.alphaShortcutTestRunning = false;
+        }
+
+        const ok = results.every((result) => result.prevented && result.active && result.particleCount > 0);
+        state.lastAlphaShortcutTest = {
+          ok,
+          testedKeys: testKeys,
+          results,
+          testedAt: new Date().toISOString()
+        };
+        state.statusLabel = ok ? "A-Z shortcut tests passed" : "A-Z shortcut tests failed";
+        showBubble(ok ? "A-Z shortcuts passed." : "A-Z shortcut test failed.", 2600);
+        render();
+        return state.lastAlphaShortcutTest;
+      }
+
       function bindEvents() {
         pill.addEventListener("click", () => {
           onManualChange(() => {
             state.panelOpen = !state.panelOpen;
             render();
+          });
+        });
+
+        sprite.addEventListener("click", (event) => {
+          event.stopPropagation();
+          onManualChange(() => {
+            render();
+            if (event.shiftKey) runStar();
+            else runPet();
           });
         });
 
@@ -1351,36 +3289,78 @@
               if (effect === "berry") runBerry();
               if (effect === "konami") runKonami();
               if (effect === "summit") runSummit();
+              if (effect === "secret-wave") runSecretWave();
+              if (effect === "heal") runHeal();
+              if (effect === "star") runStar();
               if (effect === "wake") runWakeFromNap();
               if (effect === "damage") setHealthByHp(state.hp - 12);
             });
           });
         });
 
+        if (alphaTestButton) {
+          alphaTestButton.addEventListener("click", () => {
+            runAlphaShortcutTests();
+          });
+        }
+
+        let alphaSpaceHeld = false;
+        window.addEventListener("keydown", (event) => {
+          if (event.code === "Space" || event.key === " ") {
+            if (!isEditableTarget(event.target)) alphaSpaceHeld = true;
+            return;
+          }
+          if (event.repeat || event.metaKey || event.ctrlKey || event.altKey || !alphaSpaceHeld || isEditableTarget(event.target)) return;
+          const key = alphaKeyFromEvent(event);
+          if (!ALPHA_EFFECTS[key]) return;
+          event.preventDefault();
+          const triggerAlpha = () => {
+            render();
+            runAlphaEffect(key);
+          };
+          if (state.alphaShortcutTestRunning) {
+            stopTransientState();
+            triggerAlpha();
+          } else {
+            onManualChange(triggerAlpha);
+          }
+        });
+
+        window.addEventListener("keyup", (event) => {
+          if (event.code === "Space" || event.key === " ") alphaSpaceHeld = false;
+        });
+        window.addEventListener("blur", () => {
+          alphaSpaceHeld = false;
+        });
+
         togglePanel.addEventListener("change", () => {
+          const checked = togglePanel.checked;
           onManualChange(() => {
-            state.panelOpen = togglePanel.checked;
+            state.panelOpen = checked;
             render();
           });
         });
 
         toggleStreaming.addEventListener("change", () => {
+          const checked = toggleStreaming.checked;
           onManualChange(() => {
-            state.streaming = toggleStreaming.checked;
+            state.streaming = checked;
             render();
           });
         });
 
         toggleTracking.addEventListener("change", () => {
+          const checked = toggleTracking.checked;
           onManualChange(() => {
-            state.tracking = toggleTracking.checked;
+            state.tracking = checked;
             render();
           });
         });
 
         toggleTheme.addEventListener("change", () => {
+          const checked = toggleTheme.checked;
           onManualChange(() => {
-            state.theme = toggleTheme.checked ? "light" : "dark";
+            state.theme = checked ? "light" : "dark";
             render();
           });
         });
@@ -1430,7 +3410,11 @@
           if (step.action === "berry") runBerry();
           if (step.action === "konami") runKonami();
           if (step.action === "summit") runSummit();
+          if (step.action === "secret-wave") runSecretWave();
+          if (step.action === "heal") runHeal();
+          if (step.action === "star") runStar();
           if (step.action === "wake") runWakeFromNap();
+          if (step.action === "damage") setHealthByHp(state.hp - 12);
 
           state.statusLabel = "Testing: " + step.label;
           render();
@@ -1452,6 +3436,7 @@
       }).join("");
 
       buildControls();
+      buildAlphaControls();
       buildGallery();
       bindEvents();
       render();
@@ -1510,6 +3495,28 @@
         },
         summit() {
           onManualChange(() => runSummit());
+        },
+        secretWave() {
+          onManualChange(() => runSecretWave());
+        },
+        heal() {
+          onManualChange(() => runHeal());
+        },
+        star() {
+          onManualChange(() => runStar());
+        },
+        alpha(key) {
+          const normalized = String(key || "").slice(0, 1).toLowerCase();
+          onManualChange(() => runAlphaEffect(normalized));
+        },
+        async testAlphaShortcut(key) {
+          return testAlphaShortcut(String(key || "a").slice(0, 1).toLowerCase());
+        },
+        async testAlphaShortcuts(keys) {
+          return runAlphaShortcutTests(Array.isArray(keys) ? keys : ALPHA_TEST_KEYS);
+        },
+        getLastAlphaShortcutTest() {
+          return state.lastAlphaShortcutTest;
         },
         wake() {
           onManualChange(() => runWakeFromNap());

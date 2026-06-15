@@ -49,7 +49,7 @@ export function createDraftMeter(
   const host = document.createElement('div');
   host.setAttribute('data-chathp-meter', '');
   host.style.cssText = 'position:fixed;z-index:2147483645;display:none;';
-  const shadow = host.attachShadow({ mode: 'open' });
+  const shadow = host.attachShadow({ mode: 'closed' });
   shadow.innerHTML = `
     <style>${cssText}</style>
     <div class="meter" data-theme="dark">

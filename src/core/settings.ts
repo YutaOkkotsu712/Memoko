@@ -414,6 +414,16 @@ export async function stashHandoff(siteId: string, text: string): Promise<void> 
   } catch {
     // session area unavailable from this context — fall back below
   }
+  // In a private window, don't fall back to on-disk storage — the handoff
+  // is conversation text. session is in-memory and incognito-safe; if it's
+  // unavailable here, the user can still copy the summary manually.
+  let incognito = false;
+  try {
+    incognito = chrome.extension?.inIncognitoContext === true;
+  } catch {
+    incognito = false;
+  }
+  if (incognito) return;
   try {
     await chrome.storage.local.set({ [STASH_KEY]: entry });
   } catch {
@@ -437,4 +447,17 @@ export async function takeHandoffStash(siteId: string): Promise<string | null> {
     }
   }
   return null;
+}
+
+/**
+ * Wipe everything Memoko has stored — settings, per-chat token ledgers and
+ * indexed markers, lifetime stats, adapter-health, onboarding flags, and any
+ * handoff stash. After this, the next load falls back to defaults. Used by
+ * the popup's "Clear all data" control (user-initiated; GDPR-friendly).
+ */
+export async function clearAllData(): Promise<void> {
+  await Promise.allSettled([
+    chrome.storage.local.clear(),
+    chrome.storage.session?.clear(),
+  ]);
 }

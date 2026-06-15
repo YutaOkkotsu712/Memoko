@@ -109,7 +109,8 @@ footer {
   margin-top: 12px;
 }
 
-#reset {
+#reset,
+#cleardata {
   padding: 5px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -120,6 +121,14 @@ footer {
 }
 
 #reset:hover { border-color: var(--muted); }
+
+#cleardata { color: var(--muted); }
+#cleardata:hover { border-color: #ef4444; color: #ef4444; }
+#cleardata.armed {
+  border-color: #ef4444;
+  color: #fff;
+  background: #ef4444;
+}
 
 #status { color: var(--accent); font-size: 12px; }
 

@@ -238,7 +238,7 @@ export function createPill(opts: PillOptions): PillUI {
     'position:fixed;z-index:2147483646;display:none;' +
     `right:${persist.right}px;bottom:${persist.bottom}px;`;
 
-  const shadow = host.attachShadow({ mode: 'open' });
+  const shadow = host.attachShadow({ mode: 'closed' });
   void loadPixelFonts();
   shadow.innerHTML = `
     <style>${cssText}</style>

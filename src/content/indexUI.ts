@@ -58,7 +58,7 @@ const CSS = `
 export function createIndexUI(cb: IndexUICallbacks): IndexUI {
   const host = document.createElement('div');
   host.setAttribute('data-chathp-index', '');
-  const shadow = host.attachShadow({ mode: 'open' });
+  const shadow = host.attachShadow({ mode: 'closed' });
   shadow.innerHTML = `<style>${CSS}</style><div class="wrap" data-theme="dark"><div class="chip"></div></div>`;
   const wrap = shadow.querySelector<HTMLElement>('.wrap')!;
   const chip = shadow.querySelector<HTMLElement>('.chip')!;
