@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Memoko Details Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="memoko-face.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(120% 120% at 50% 0%, #2c2a27 0%, #1d1b18 60%, #151310 100%);
+    transition: background .3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Silkscreen', monospace;
+    overflow: hidden;
+  }
+  /* faint dot-grid "desk" texture behind the window */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events: none;
+  }
+  #root { display: flex; align-items: center; justify-content: center; }
+  ::selection { background: #ff2e97; color: #fff; }
+
+  /* crisp pixel rendering for the sprite portrait */
+  .mk-portrait svg { image-rendering: pixelated; }
+
+  /* ============================== THE WINDOW ============================== */
+  .stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .win {
+    --hp: #a3e635;
+    position: relative;
+    width: 348px;
+    color: var(--ink);
+    background:
+      linear-gradient(180deg, var(--win-bg) 0%, var(--win-bg2) 100%);
+    /* chunky stacked pixel frame */
+    box-shadow:
+      0 0 0 3px var(--frame),
+      0 0 0 6px var(--frame2),
+      0 0 0 9px var(--edge),
+      0 16px 0 9px rgba(0,0,0,0.35),
+      var(--glow);
+    /* notched 8-bit corners */
+    clip-path: polygon(
+      0 6px, 6px 6px, 6px 0,
+      calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px,
+      100% calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), calc(100% - 6px) 100%,
+      6px 100%, 6px calc(100% - 6px), 0 calc(100% - 6px)
+    );
+    padding: 14px 15px 12px;
+    image-rendering: pixelated;
+    transition: box-shadow .25s ease;
+  }
+
+  /* ---- accents (frame + ink palettes) ---- */
+  [data-accent="arcade"] {
+    --win-bg:#160b27; --win-bg2:#0e0719; --frame:#ff2e97; --frame2:#5e1140;
+    --edge:#0a0613; --ink:#ffe9fb; --ink-dim:#bb87cf; --leader:rgba(255,46,151,.30);
+    --accent:#26e0e0; --inset:#0a0613; --insetline:rgba(255,46,151,.35);
+    --glow: 0 0 26px rgba(255,46,151,.40), 0 0 60px rgba(38,224,224,.10);
+  }
+  [data-accent="crystal"] {
+    --win-bg:#1b3793; --win-bg2:#0e1c4d; --frame:#eef3ff; --frame2:#6f8ed0;
+    --edge:#0a1233; --ink:#f0f5ff; --ink-dim:#a9c0ee; --leader:rgba(255,255,255,.26);
+    --accent:#ffd86b; --inset:#0a1538; --insetline:rgba(255,255,255,.22);
+    --glow: 0 0 24px rgba(63,108,224,.35);
+  }
+  [data-accent="gameboy"] {
+    --win-bg:#9bbc0f; --win-bg2:#8bac0f; --frame:#0f380f; --frame2:#306230;
+    --edge:#0f380f; --ink:#0f380f; --ink-dim:#1f5320; --leader:rgba(15,56,15,.45);
+    --accent:#0f380f; --inset:#83a012; --insetline:rgba(15,56,15,.35);
+    --glow: none;
+  }
+  [data-accent="quest"] {
+    --win-bg:#0b0b10; --win-bg2:#0b0b10; --frame:#ffffff; --frame2:#9aa0ab;
+    --edge:#000000; --ink:#ffffff; --ink-dim:#9aa0ab; --leader:rgba(255,255,255,.30);
+    --accent:#ffd86b; --inset:#000000; --insetline:rgba(255,255,255,.20);
+    --glow: none;
+  }
+
+  /* ---- HP state colors (Game Boy collapses them to its darkest green) ---- */
+  [data-state="fresh"]    { --st:#34d399; }
+  [data-state="healthy"]  { --st:#a3e635; }
+  [data-state="heavy"]    { --st:#f59e0b; }
+  [data-state="critical"] { --st:#ef4444; }
+  [data-accent="gameboy"] { --st:#0f380f; }
+
+  /* ===================== LIGHT MODE — HANDHELD LCD SKIN =====================
+     In light host themes the neon arcade cabinet would clash with a bright
+     page, so light mode swaps to a calm "handheld LCD" palette (Game Boy /
+     Tamagotchi screen): warm device shell, pale LCD screen, dark pixel ink,
+     no glow. Same pixel/RPG structure, page-friendly tone. */
+  [data-theme="light"] {
+    --win-bg:#cdd6bd; --win-bg2:#c3ccb1; --frame:#b8b2a2; --frame2:#8e8878;
+    --edge:#6c675a; --ink:#2b3425; --ink-dim:#6b7360; --leader:rgba(43,52,37,.28);
+    --accent:#3f6f86; --inset:#bdc7a9; --insetline:rgba(43,52,37,.30);
+    --glow: none;
+  }
+  [data-theme="light"][data-state="fresh"]    { --st:#3f8f4a; }
+  [data-theme="light"][data-state="healthy"]  { --st:#6f8f33; }
+  [data-theme="light"][data-state="heavy"]    { --st:#b07d1e; }
+  [data-theme="light"][data-state="critical"] { --st:#b23b2e; }
+  /* softer device depth instead of the hard arcade drop */
+  .win[data-theme="light"] {
+    box-shadow:
+      0 0 0 3px var(--frame), 0 0 0 6px var(--frame2), 0 0 0 8px var(--edge),
+      0 12px 0 8px rgba(108,103,90,.28), 0 20px 32px rgba(70,64,48,.20);
+  }
+  .pill-pixel[data-theme="light"] {
+    box-shadow:
+      0 0 0 3px var(--frame), 0 0 0 6px var(--frame2), 0 0 0 8px var(--edge),
+      0 8px 0 8px rgba(108,103,90,.26), 0 14px 22px rgba(70,64,48,.18);
+  }
+  /* LCD dot-matrix overlay instead of CRT scanlines */
+  [data-theme="light"].scan::after {
+    background:
+      radial-gradient(rgba(43,52,37,0.10) 0.5px, transparent 0.5px),
+      radial-gradient(120% 90% at 50% 0%, transparent 72%, rgba(43,52,37,0.05) 100%);
+    background-size: 3px 3px, 100% 100%;
+    mix-blend-mode: multiply;
+    animation: none;
+  }
+
+  /* ===================== SIMULATED HOST-PAGE BACKDROPS ===================== */
+  body[data-app="claude"][data-mode="dark"]  { background: radial-gradient(120% 120% at 50% 0%, #2c2a27 0%, #1d1b18 60%, #151310 100%); }
+  body[data-app="claude"][data-mode="light"] { background: radial-gradient(120% 120% at 50% 0%, #f4f1e9 0%, #ece7db 70%, #e2dccb 100%); }
+  body[data-app="gpt"][data-mode="dark"]     { background: radial-gradient(120% 120% at 50% 0%, #2a2a2a 0%, #1c1c1c 60%, #131313 100%); }
+  body[data-app="gpt"][data-mode="light"]    { background: radial-gradient(120% 120% at 50% 0%, #ffffff 0%, #f6f6f6 70%, #ededed 100%); }
+  body[data-mode="light"]::before { background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px); }
+
+  /* ---- scanline + CRT overlay (shared by panel + pill) ---- */
+  .scan::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.18) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0,0,0,0.25) 100%);
+    mix-blend-mode: multiply;
+    z-index: 9;
+    animation: flicker 5.5s steps(60) infinite;
+  }
+  @keyframes flicker { 0%,100%{opacity:.9} 48%{opacity:.78} 52%{opacity:.95} }
+
+  /* ===================== DOCK + COLLAPSED PILL (shares the theme) ===================== */
+  .dock { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; }
+
+  .pill-pixel {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 13px;
+    color: var(--ink);
+    background: linear-gradient(180deg, var(--win-bg) 0%, var(--win-bg2) 100%);
+    box-shadow:
+      0 0 0 3px var(--frame),
+      0 0 0 6px var(--frame2),
+      0 0 0 8px var(--edge),
+      0 10px 0 8px rgba(0,0,0,0.30),
+      var(--glow);
+    clip-path: polygon(
+      0 5px, 5px 5px, 5px 0,
+      calc(100% - 5px) 0, calc(100% - 5px) 5px, 100% 5px,
+      100% calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), calc(100% - 5px) 100%,
+      5px 100%, 5px calc(100% - 5px), 0 calc(100% - 5px)
+    );
+    image-rendering: pixelated;
+  }
+  /* Memoko herself is UNCHANGED — her live sprite still patrols the top border;
+     here her portrait perches on the corner as a stand-in for that sprite. */
+  .pill-sprite {
+    position: absolute;
+    left: 8px;
+    bottom: calc(100% - 9px);
+    width: 30px; height: 30px;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 0 var(--edge));
+  }
+  .pill-sprite svg { image-rendering: pixelated; }
+  .pill-hp {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+  }
+  .pill-segs { display: flex; gap: 2px; }
+  .pill-seg {
+    width: 9px; height: 12px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 1px var(--frame2);
+  }
+  .pill-seg.on {
+    background: var(--st);
+    box-shadow: inset 0 2px 0 color-mix(in srgb, var(--st) 60%, #fff);
+  }
+  [data-accent="gameboy"] .pill-seg.on { box-shadow: none; }
+  .pill-pixel.lowpulse .pill-seg.on { animation: hpblink .9s steps(2) infinite; }
+  .pill-num {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    min-width: 22px;
+    text-align: right;
+  }
+
+  /* ============================== HEADER ============================== */
+  .win-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 9px;
+    border-bottom: 2px solid var(--frame2);
+    margin-bottom: 10px;
+  }
+  .mk-portrait {
+    width: 46px;
+    height: 46px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--inset);
+    box-shadow: 0 0 0 2px var(--frame2), inset 0 0 0 2px rgba(255,255,255,0.05);
+    padding: 4px;
+  }
+  .head-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    text-shadow: 2px 2px 0 var(--edge);
+    line-height: 1;
+  }
+  .name-sub {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .lv {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--edge);
+    background: var(--accent);
+    padding: 2px 5px 1px;
+    letter-spacing: 0.04em;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  }
+  .win[data-accent="gameboy"] .lv { color: var(--win-bg); }
+  .class-tag {
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .state-badge {
+    align-self: flex-start;
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--st);
+    border: 2px solid var(--st);
+    padding: 3px 6px 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: inset 0 0 8px color-mix(in srgb, var(--st) 30%, transparent);
+  }
+
+  /* ============================== HP GAUGE ============================== */
+  .hp-wrap { margin-bottom: 11px; }
+  .hp-top {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+  .hp-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--st);
+  }
+  .hp-num {
+    margin-left: auto;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .hp-num .max { font-size: 9px; color: var(--ink-dim); }
+  .hp-bar {
+    position: relative;
+    height: 16px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 2px var(--frame2);
+    padding: 3px;
+    display: flex;
+    gap: 2px;
+  }
+  .hp-seg {
+    flex: 1;
+    background: transparent;
+    transition: background .2s ease, box-shadow .2s ease;
+  }
+  .hp-seg.on {
+    background: var(--st);
+    box-shadow: inset 0 2px 0 color-mix(in srgb, var(--st) 60%, #fff);
+  }
+  .win[data-accent="gameboy"] .hp-seg.on { box-shadow: none; }
+  .win.lowpulse .hp-seg.on { animation: hpblink .9s steps(2) infinite; }
+  @keyframes hpblink { 50% { opacity: .35; } }
+
+  /* xp-to-next-rank thread */
+  .xp-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 7px;
+    font-size: 9px;
+    color: var(--ink-dim);
+    letter-spacing: 0.06em;
+  }
+  .xp-track {
+    flex: 1;
+    height: 6px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 2px var(--frame2);
+  }
+  .xp-fill { height: 100%; background: var(--accent); }
+
+  /* ============================== DIALOGUE ============================== */
+  .dialogue {
+    position: relative;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 2px var(--frame2);
+    padding: 8px 9px 8px 20px;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 11px;
+    min-height: 36px;
+    letter-spacing: 0.02em;
+  }
+  .dialogue .cursor {
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    color: var(--accent);
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ============================== STAT LIST ============================== */
+  .section-cap {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--ink-dim);
+    margin: 0 0 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-cap::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--frame2) 0 3px, transparent 3px 6px);
+  }
+  .stat-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 10px;
+  }
+  .stat .k { color: var(--ink-dim); letter-spacing: 0.03em; white-space: nowrap; }
+  .stat .lead {
+    flex: 1;
+    align-self: center;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--leader) 0 2px, transparent 2px 5px);
+  }
+  .stat .v {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .stat .v.warn { color: #f59e0b; }
+  .win[data-accent="gameboy"] .stat .v.warn { color: var(--ink); text-decoration: underline; }
+  .stat.click { cursor: pointer; }
+  .stat.click .v { color: var(--accent); }
+  .win[data-accent="gameboy"] .stat.click .v { color: var(--ink); text-decoration: underline; }
+  .stat.click:hover .v { filter: brightness(1.2); text-decoration: underline; }
+  .stat .v .attach { color: var(--ink-dim); font-size: 9px; }
+
+  /* ============================== COMMAND ============================== */
+  .command {
+    width: 100%;
+    text-align: left;
+    font-family: 'Silkscreen', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--edge);
+    background: var(--st);
+    border: none;
+    padding: 9px 10px 8px 24px;
+    position: relative;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 var(--edge);
+    transition: transform .08s ease, box-shadow .08s ease, filter .12s ease;
+  }
+  .command::before {
+    content: '\25B6';
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity .1s ease;
+  }
+  .command:hover { filter: brightness(1.08); }
+  .command:hover::before { opacity: 1; animation: blink 0.7s steps(2) infinite; }
+  .command:active { transform: translate(3px,3px); box-shadow: 0 0 0 var(--edge); }
+  .win[data-accent="gameboy"] .command { color: var(--win-bg); }
+
+  /* handoff result card (after "casting" handoff) */
+  .result {
+    margin-top: 2px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 2px var(--frame2);
+    padding: 9px;
+  }
+  .result .ratio {
+    font-size: 10px;
+    color: var(--st);
+    letter-spacing: 0.02em;
+    margin-bottom: 7px;
+    font-variant-numeric: tabular-nums;
+  }
+  .result .preview {
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    max-height: 70px;
+    overflow: auto;
+    border-left: 2px solid var(--frame2);
+    padding-left: 7px;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+  }
+  .result .btns { display: flex; gap: 6px; }
+  .rbtn {
+    flex: 1;
+    font-family: 'Silkscreen', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 6px 4px 5px;
+    cursor: pointer;
+    color: var(--ink);
+    background: transparent;
+    border: 2px solid var(--frame2);
+    transition: filter .12s ease;
+  }
+  .rbtn.primary { background: var(--st); color: var(--edge); border-color: var(--st); }
+  .win[data-accent="gameboy"] .rbtn.primary { color: var(--win-bg); }
+  .rbtn:hover { filter: brightness(1.15); }
+  .rbtn.x { flex: none; width: 30px; }
+
+  /* ============================== RECORDS ============================== */
+  .records { margin-top: 12px; }
+  .medals {
+    display: flex;
+    gap: 8px;
+    margin: 9px 0 10px;
+  }
+  .medal {
+    flex: 1;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 2px var(--frame2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px;
+  }
+  .medal.locked { opacity: 0.45; filter: grayscale(0.7); }
+  .medal .glyph { width: 18px; height: 18px; display: block; }
+  .medal .mlabel {
+    font-size: 7.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .medal.unlocked .mlabel { color: var(--ink); }
+  .medal .lockq {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .hero {
+    margin-top: 4px;
+    background: var(--inset);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 50%, var(--frame2));
+    padding: 8px 9px;
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero .h-heart { color: var(--accent); font-size: 11px; }
+  .hero b { color: var(--accent); }
+
+  .foot {
+    margin-top: 11px;
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+
+  .stat-bump { animation: bump .7s ease-out; }
+  @keyframes bump { 0% { transform: scale(1.35); color: var(--accent); } 100% { transform: scale(1); } }
+
+  /* ---- LEVEL-UP celebration overlay ---- */
+  .levelup {
+    position:absolute; inset:0; z-index:20;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    text-align:center; padding:18px;
+    background: color-mix(in srgb, var(--edge) 86%, transparent);
+    animation: lu-in .35s ease-out;
+  }
+  @keyframes lu-in { from { opacity:0; } to { opacity:1; } }
+  .lu-burst { position:absolute; inset:0; pointer-events:none; }
+  .lu-burst span {
+    position:absolute; left:50%; top:42%;
+    color: var(--accent); font-size:13px;
+    animation: lu-spark 1.1s ease-out calc(var(--i) * .08s) infinite;
+  }
+  .lu-burst span:nth-child(1){ --dx:-70px; --dy:-34px; }
+  .lu-burst span:nth-child(2){ --dx:64px; --dy:-40px; }
+  .lu-burst span:nth-child(3){ --dx:-82px; --dy:26px; }
+  .lu-burst span:nth-child(4){ --dx:78px; --dy:30px; }
+  .lu-burst span:nth-child(5){ --dx:-30px; --dy:-58px; }
+  .lu-burst span:nth-child(6){ --dx:34px; --dy:56px; }
+  @keyframes lu-spark { 0%{ transform:translate(0,0) scale(.4); opacity:0; } 30%{opacity:1;} 100%{ transform:translate(var(--dx),var(--dy)) scale(1); opacity:0; } }
+  .lu-title {
+    font-family:'Press Start 2P', monospace; font-size:19px; line-height:1;
+    color: var(--accent); text-shadow: 3px 3px 0 var(--edge);
+    animation: lu-pop .45s cubic-bezier(.2,1.4,.5,1) both;
+  }
+  @keyframes lu-pop { 0%{ transform:scale(.4); opacity:0; } 100%{ transform:scale(1); opacity:1; } }
+  .lu-rank { font-family:'Press Start 2P', monospace; font-size:11px; color: var(--st); }
+  .lu-sub { font-size:10px; letter-spacing:.08em; color: var(--ink); text-transform:uppercase; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .win.scan::after, .command:hover::before, .dialogue .cursor,
+    .win.lowpulse .hp-seg.on, .stat-bump { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#160b27"/>
+    <rect x="22" y="22" width="56" height="56" fill="none" stroke="#ff2e97" stroke-width="4"/>
+    <rect x="34" y="40" width="32" height="6" fill="#a3e635"/>
+    <rect x="34" y="54" width="20" height="6" fill="#26e0e0"/>
+  </svg>
+</template>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ---- per-state mock telemetry (mirrors what the real extension reports) ----
+const STATES = {
+  fresh: {
+    label: 'FRESH', hp: 92, usage: '~8%', adjusted: null,
+    tokens: '~16k', budget: '200k', attached: null,
+    msgs: 6, dup: null, burn: '–', split: '58% / 42%',
+    heavy: '#3 (you) · ~2.1k', age: '4m',
+    status: 'Memoko is feeling fresh!',
+  },
+  healthy: {
+    label: 'HEALTHY', hp: 64, usage: '~36%', adjusted: null,
+    tokens: '~72k', budget: '200k', attached: null,
+    msgs: 28, dup: '~4k tok · 2×', burn: '~1.1k/min', split: '47% / 53%',
+    heavy: '#19 (AI) · ~5.4k', age: '22m',
+    status: 'Memoko is cruising along.',
+  },
+  heavy: {
+    label: 'HEAVY', hp: 38, usage: '~62%', adjusted: '~71%',
+    tokens: '~124k', budget: '200k', attached: '+12k attached',
+    msgs: 74, dup: '~9k tok · 3×', burn: '~1.4k/min · 24m left', split: '41% / 59%',
+    heavy: '#61 (AI) · ~8.7k', age: '1h 6m',
+    status: 'Memoko is getting tired…',
+  },
+  critical: {
+    label: 'CRITICAL', hp: 6, usage: '~96%', adjusted: '~100%',
+    tokens: '~191k', budget: '200k', attached: '+12k attached',
+    msgs: 118, dup: '~14k tok · 4×', burn: '~1.2k/min · 2m left', split: '39% / 61%',
+    heavy: '#103 (AI) · ~11k', age: '1h 52m',
+    status: 'Memoko is exhausted — hand off this chat.',
+  },
+};
+
+// lifetime "save file" — drives rank + records
+const LIFETIME = { chats: 142, handoffs: 37, saved: 2_847_000 };
+const RANK = Math.floor(LIFETIME.saved / 100_000) + 1;          // LV 29
+const RANK_FLOOR = (RANK - 1) * 100_000;
+const RANK_PCT = Math.round(((LIFETIME.saved - RANK_FLOOR) / 100_000) * 100);
+const fmtTok = (n) => n >= 1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,'')+'M' : n>=1e3 ? Math.round(n/1e3)+'k' : String(n);
+
+const HP_SEGMENTS = 22;
+const PILL_SEGMENTS = 7;
+
+// pixel medal glyphs (simple shapes only — no hand-drawn detail)
+const Medal = ({ kind, unlocked, label }) => {
+  let glyph;
+  if (!unlocked) {
+    glyph = <span className="lockq">?</span>;
+  } else if (kind === 'berry') {
+    glyph = (
+      <svg className="glyph" viewBox="0 0 16 16" shapeRendering="crispEdges">
+        <rect x="6" y="1" width="3" height="3" fill="#3fae57"/>
+        <rect x="4" y="4" width="8" height="6" fill="#ff3e6e"/>
+        <rect x="5" y="10" width="6" height="2" fill="#ff3e6e"/>
+        <rect x="6" y="12" width="4" height="2" fill="#d92850"/>
+        <rect x="6" y="6" width="1" height="1" fill="#fff"/>
+        <rect x="9" y="8" width="1" height="1" fill="#fff"/>
+      </svg>
+    );
+  } else if (kind === 'summit') {
+    glyph = (
+      <svg className="glyph" viewBox="0 0 16 16" shapeRendering="crispEdges">
+        <rect x="4" y="2" width="2" height="12" fill="#cfd6e0"/>
+        <rect x="6" y="2" width="7" height="5" fill="#ffd86b"/>
+        <rect x="3" y="13" width="9" height="2" fill="#8a93a6"/>
+      </svg>
+    );
+  } else {
+    glyph = (
+      <svg className="glyph" viewBox="0 0 16 16" shapeRendering="crispEdges">
+        <rect x="7" y="1" width="2" height="14" fill="#5bf08a"/>
+        <rect x="1" y="7" width="14" height="2" fill="#5bf08a"/>
+        <rect x="3" y="3" width="2" height="2" fill="#5bf08a"/>
+        <rect x="11" y="3" width="2" height="2" fill="#5bf08a"/>
+        <rect x="3" y="11" width="2" height="2" fill="#5bf08a"/>
+        <rect x="11" y="11" width="2" height="2" fill="#5bf08a"/>
+      </svg>
+    );
+  }
+  return (
+    <div className={`medal ${unlocked ? 'unlocked' : 'locked'}`}>
+      {glyph}
+      <span className="mlabel">{label}</span>
+    </div>
+  );
+};
+
+const Stat = ({ k, v, warn, click }) => (
+  <div className={`stat${click ? ' click' : ''}`}>
+    <span className="k">{k}</span>
+    <span className="lead"></span>
+    <span className={`v${warn ? ' warn' : ''}`}>{v}</span>
+  </div>
+);
+
+// rank title ladder — evolves with LV, derived only (no storage)
+const RANK_TITLES = [
+  [1, 'Token Sprout'], [5, 'Note Taker'], [10, 'Context Keeper'],
+  [20, 'Memory Archivist'], [35, 'Lore Warden'], [50, 'Grand Archivist'],
+];
+const rankTitle = (lv) => RANK_TITLES.reduce((acc, [min, name]) => lv >= min ? name : acc, RANK_TITLES[0][1]);
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "app": "claude",
+  "mode": "dark",
+  "scanlines": true,
+  "hpState": "healthy",
+  "show": "both",
+  "levelup": false
+}/*EDITMODE-END*/;
+
+const STATE_KEYS = ['fresh', 'healthy', 'heavy', 'critical'];
+const accent = 'arcade'; // single committed skin; light mode swaps to the LCD palette via [data-theme]
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const app = ['claude', 'gpt'].includes(t.app) ? t.app : 'claude';
+  const mode = ['dark', 'light'].includes(t.mode) ? t.mode : 'dark';
+  const stateKey = STATE_KEYS.includes(t.hpState) ? t.hpState : 'healthy';
+  const s = STATES[stateKey];
+  const [handoff, setHandoff] = useState('idle'); // idle | done
+  const [copied, setCopied] = useState(false);
+
+  // drive the simulated host-page backdrop
+  useEffect(() => {
+    document.body.dataset.app = app;
+    document.body.dataset.mode = mode;
+  }, [app, mode]);
+
+  // reset the handoff card whenever state/mode changes for a clean preview
+  useEffect(() => { setHandoff('idle'); setCopied(false); }, [stateKey, mode]);
+
+  const filled = s.hp > 0 ? Math.max(1, Math.round((s.hp / 100) * HP_SEGMENTS)) : 0;
+  const portrait = { __html: window.memokoFaceSvg(stateKey, 38) };
+  const lowpulse = stateKey === 'critical';
+  const show = ['both', 'panel', 'pill'].includes(t.show) ? t.show : 'both';
+  const showPanel = show !== 'pill';
+  const showPill = show !== 'panel';
+  const pillFilled = s.hp > 0 ? Math.max(1, Math.round((s.hp / 100) * PILL_SEGMENTS)) : 0;
+  const pillFace = { __html: window.memokoFaceSvg(stateKey, 30) };
+
+  return (
+    <div className="stage">
+      <div className="dock">
+      {showPanel && (
+      <div className={`win${t.scanlines ? ' scan' : ''}${lowpulse ? ' lowpulse' : ''}`}
+           data-accent={accent} data-state={stateKey} data-theme={mode}>
+
+        {t.levelup && (
+          <div className="levelup">
+            <div className="lu-burst">{['✦','✧','✦','✧','✦','✧'].map((c,i)=><span key={i} style={{'--i':i}}>{c}</span>)}</div>
+            <div className="lu-title">LEVEL UP!</div>
+            <div className="lu-rank">LV {RANK}</div>
+            <div className="lu-sub">{rankTitle(RANK)} unlocked</div>
+            <button className="rbtn primary" style={{marginTop:'8px',padding:'7px 18px'}} onClick={() => setTweak('levelup', false)}>Nice!</button>
+          </div>
+        )}
+
+        {/* ---------- HEADER ---------- */}
+        <div className="win-head">
+          <div className="mk-portrait" dangerouslySetInnerHTML={portrait}></div>
+          <div className="head-mid">
+            <span className="name">MEMOKO</span>
+            <span className="name-sub">
+              <span className="lv">LV {RANK}</span>
+              <span className="class-tag">{rankTitle(RANK)}</span>
+            </span>
+          </div>
+          <span className="state-badge">{s.label}</span>
+        </div>
+
+        {/* ---------- HP GAUGE ---------- */}
+        <div className="hp-wrap">
+          <div className="hp-top">
+            <span className="hp-label">HP</span>
+            <span className="hp-num">{s.hp}<span className="max"> / 100</span></span>
+          </div>
+          <div className="hp-bar">
+            {Array.from({ length: HP_SEGMENTS }).map((_, i) => (
+              <span key={i} className={`hp-seg${i < filled ? ' on' : ''}`}></span>
+            ))}
+          </div>
+          <div className="xp-row">
+            <span>NEXT RANK</span>
+            <span className="xp-track"><span className="xp-fill" style={{ width: RANK_PCT + '%' }}></span></span>
+            <span>{RANK_PCT}%</span>
+          </div>
+        </div>
+
+        {/* ---------- DIALOGUE ---------- */}
+        <div className="dialogue">
+          <span className="cursor">▸</span>
+          {s.status}
+        </div>
+
+        {/* ---------- STATS ---------- */}
+        <div className="section-cap">STATUS</div>
+        <div className="stat-list">
+          <Stat k="Context used" v={s.usage} />
+          {s.adjusted && <Stat k="Adjusted load" v={s.adjusted} warn />}
+          <Stat k="Est. tokens" v={<>{s.tokens} / {s.budget}{s.attached && <span className="attach"> ({s.attached})</span>}</>} />
+          <Stat k="Messages" v={s.msgs} />
+          <Stat k="Duplicates" v={s.dup || 'none'} warn={!!s.dup} click={!!s.dup} />
+          <Stat k="Burn rate" v={s.burn} />
+          <Stat k="You / AI" v={s.split} />
+          <Stat k="Heaviest" v={s.heavy} click />
+          <Stat k="Watching" v={`${s.age} (this tab)`} />
+        </div>
+
+        {/* ---------- COMMAND ---------- */}
+        {handoff === 'idle' ? (
+          <button className="command" onClick={() => setHandoff('done')}>
+            Generate handoff
+          </button>
+        ) : (
+          <div className="result">
+            <div className="ratio">~182k → ~2.1k tokens · 98.8% compressed</div>
+            <div className="preview">DECISIONS: shipped pixel status panel; kept Memoko sprite frozen.
+STATE: details box redesigned as JRPG window.
+OPEN: pick accent + scanline default.
+FACTS: 100% local, no text stored.</div>
+            <div className="btns">
+              <button className="rbtn primary" onClick={() => setCopied(true)}>
+                {copied ? 'Copied ✓' : 'Copy'}
+              </button>
+              <button className="rbtn" onClick={() => setHandoff('idle')}>New chat</button>
+              <button className="rbtn x" onClick={() => setHandoff('idle')}>✕</button>
+            </div>
+          </div>
+        )}
+
+        {/* ---------- RECORDS ---------- */}
+        <div className="records">
+          <div className="section-cap">RECORDS</div>
+          <div className="stat-list">
+            <Stat k="Chats watched" v={LIFETIME.chats} />
+            <Stat k="Handoffs done" v={LIFETIME.handoffs} />
+            <Stat k="Tokens saved" v={'~' + fmtTok(LIFETIME.saved)} />
+          </div>
+          <div className="medals">
+            <Medal kind="berry" unlocked label="Berry" />
+            <Medal kind="summit" unlocked label="Summit" />
+            <Medal kind="oneup" unlocked={false} label="1-UP" />
+          </div>
+          <div className="hero">
+            <span className="h-heart">♥</span>
+            <span>Memoko has saved you <b>~{fmtTok(LIFETIME.saved)}</b> tokens.</span>
+          </div>
+        </div>
+
+        <div className="foot">Estimates only · 100% local</div>
+      </div>
+      )}
+
+      {showPill && (
+        <div className={`pill-pixel${t.scanlines ? ' scan' : ''}${lowpulse ? ' lowpulse' : ''}`}
+             data-accent={accent} data-state={stateKey} data-theme={mode}>
+          <span className="pill-sprite" dangerouslySetInnerHTML={pillFace}></span>
+          <span className="pill-hp">HP</span>
+          <span className="pill-segs">
+            {Array.from({ length: PILL_SEGMENTS }).map((_, i) => (
+              <span key={i} className={`pill-seg${i < pillFilled ? ' on' : ''}`}></span>
+            ))}
+          </span>
+          <span className="pill-num">{s.hp}</span>
+        </div>
+      )}
+      </div>
+
+      <TweaksPanel>
+        <TweakSection label="Where it lives" />
+        <TweakRadio label="App" value={app}
+          options={[{value:'claude',label:'Claude'},{value:'gpt',label:'ChatGPT'}]}
+          onChange={(v) => setTweak('app', v)} />
+        <TweakRadio label="Host theme" value={mode}
+          options={[{value:'dark',label:'Dark'},{value:'light',label:'Light'}]}
+          onChange={(v) => setTweak('mode', v)} />
+        <TweakToggle label={mode === 'light' ? 'Dot-matrix' : 'Scanlines (CRT)'} value={t.scanlines}
+          onChange={(v) => setTweak('scanlines', v)} />
+        <TweakSection label="Gamify (preview)" />
+        <TweakToggle label="Level-up moment" value={!!t.levelup}
+          onChange={(v) => setTweak('levelup', v)} />
+        <TweakSection label="Preview" />
+        <TweakRadio label="Health state" value={stateKey}
+          options={[{value:'fresh',label:'Fresh'},{value:'healthy',label:'Healthy'},{value:'heavy',label:'Heavy'},{value:'critical',label:'Critical'}]}
+          onChange={(v) => setTweak('hpState', v)} />
+        <TweakRadio label="Show" value={show}
+          options={[{value:'both',label:'Both'},{value:'panel',label:'Panel'},{value:'pill',label:'Pill'}]}
+          onChange={(v) => setTweak('show', v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

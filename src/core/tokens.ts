@@ -53,6 +53,14 @@ function isAsciiSymbol(code: number): boolean {
 const CODE_INDENT = 4;
 const CODE_SYMBOL_RATIO = 0.08;
 
+// Long whitespace-free runs — URLs, file paths, hashes, UUIDs, base64,
+// long identifiers — aren't natural language; BPE shatters them into many
+// subword tokens (~2.3 chars/token). Charging them at the prose rate
+// systematically undercounts, so chars inside a run this long or longer
+// are billed at the denser opaque rate instead.
+const LONG_RUN = 24;
+const OPAQUE_RATIO = 0.65; // opaque cpt = prose cpt × this (≈2.3 at 3.6)
+
 export function estimateTokensText(text: string, proseCharsPerToken: number): number {
   if (!text || proseCharsPerToken <= 0) return 0;
   const codeCpt = proseCharsPerToken * CODE_DENSITY_RATIO;
@@ -75,17 +83,30 @@ export function estimateTokensText(text: string, proseCharsPerToken: number): nu
     let nonSpace = 0;
     let indent = 0;
     let inIndent = true;
+    let run = 0; // current non-space, non-CJK run length
+    let opaqueChars = 0; // chars inside runs ≥ LONG_RUN
+    const endRun = () => {
+      if (run >= LONG_RUN) opaqueChars += run;
+      run = 0;
+    };
     for (let i = lineStart; i < lineEnd; i++) {
       const c = text.charCodeAt(i);
       if (c === 0x20 || c === 0x09) {
         if (inIndent) indent++;
+        endRun();
         continue;
       }
       inIndent = false;
       nonSpace++;
-      if (isCjk(c)) cjk++;
-      else if (isAsciiSymbol(c)) symbols++;
+      if (isCjk(c)) {
+        cjk++;
+        endRun(); // CJK isn't part of a Latin run, and is billed per-char
+      } else {
+        run++;
+        if (isAsciiSymbol(c)) symbols++;
+      }
     }
+    endRun();
 
     // Fence delimiters: a (possibly indented) line whose first non-space
     // run is ``` or ~~~. The delimiter line counts as code on both edges.
@@ -110,7 +131,11 @@ export function estimateTokensText(text: string, proseCharsPerToken: number): nu
         forceCode ||
         indent >= CODE_INDENT ||
         symbols / Math.max(1, nonSpace) > CODE_SYMBOL_RATIO;
-      tokens += charge / (codeish ? codeCpt : proseCharsPerToken);
+      // Long opaque runs bill at the denser opaque rate; everything else
+      // (spaces + ordinary words) at the line's prose/code rate.
+      const opaque = Math.min(opaqueChars, charge);
+      tokens += opaque / (proseCharsPerToken * OPAQUE_RATIO);
+      tokens += (charge - opaque) / (codeish ? codeCpt : proseCharsPerToken);
     }
     tokens += indent / 8;
     tokens += cjk; // ~1 token per CJK character

@@ -1,6 +1,10 @@
 // Unit checks for the effective-load heuristics. Run with:
 //   node --experimental-strip-types scripts/test-health.mjs  (Node 22)
-import { effectiveLoadPct, healthState } from '../src/core/health.ts';
+import {
+  effectiveLoadPct,
+  healthState,
+  mergeReloadEstimate,
+} from '../src/core/health.ts';
 
 const T = { healthy: 30, heavy: 60, critical: 90 };
 const base = { usagePct: 50, messageCount: 20, dupTokens: 0, budget: 200_000 };
@@ -47,13 +51,77 @@ const cases = [
       healthState(89.9, T) === 'heavy' &&
       healthState(90, T) === 'critical',
   },
+  {
+    name: 'reload merge keeps restored conversation floor',
+    input: null,
+    expect: () => {
+      const merged = mergeReloadEstimate(
+        {
+          observedTokens: 16_000,
+          observedMessageCount: 12,
+          observedDupTokens: 0,
+          observedDupBlocks: 0,
+        },
+        { tokens: 72_000 }
+      );
+      return (
+        merged.baseTokens === 72_000 &&
+        merged.messageCount === 12 &&
+        merged.dupTokens === 0 &&
+        merged.dupBlocks === 0
+      );
+    },
+  },
+  {
+    name: 'reload merge preserves restored structural penalties until live catches up',
+    input: null,
+    expect: () => {
+      const merged = mergeReloadEstimate(
+        {
+          observedTokens: 16_000,
+          observedMessageCount: 24,
+          observedDupTokens: 0,
+          observedDupBlocks: 0,
+        },
+        { tokens: 48_000, messageCount: 88, dupTokens: 18_000, dupBlocks: 3 }
+      );
+      return (
+        merged.baseTokens === 48_000 &&
+        merged.messageCount === 88 &&
+        merged.dupTokens === 18_000 &&
+        merged.dupBlocks === 3
+      );
+    },
+  },
+  {
+    name: 'reload merge lets larger live counts win once the page catches up',
+    input: null,
+    expect: () => {
+      const merged = mergeReloadEstimate(
+        {
+          observedTokens: 64_000,
+          observedMessageCount: 120,
+          observedDupTokens: 22_000,
+          observedDupBlocks: 4,
+        },
+        { tokens: 48_000, messageCount: 88, dupTokens: 18_000, dupBlocks: 3 }
+      );
+      return (
+        merged.baseTokens === 64_000 &&
+        merged.messageCount === 120 &&
+        merged.dupTokens === 22_000 &&
+        merged.dupBlocks === 4
+      );
+    },
+  },
 ];
 
 let failed = 0;
 for (const c of cases) {
-  const v = effectiveLoadPct(c.input);
+  const v = c.input ? effectiveLoadPct(c.input) : NaN;
   const ok = c.expect(v);
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${c.name}  → ${v.toFixed(2)}%`);
+  const out = Number.isFinite(v) ? `${v.toFixed(2)}%` : 'helper ok';
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${c.name}  → ${out}`);
   if (!ok) failed++;
 }
 process.exit(failed === 0 ? 0 : 1);

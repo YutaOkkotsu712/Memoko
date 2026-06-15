@@ -53,6 +53,45 @@ export interface LoadInputs {
   budget: number;
 }
 
+export interface ReloadMergeInputs {
+  observedTokens: number;
+  observedMessageCount: number;
+  observedDupTokens: number;
+  observedDupBlocks: number;
+}
+
+export interface ReloadMergedStats {
+  baseTokens: number;
+  messageCount: number;
+  dupTokens: number;
+  dupBlocks: number;
+}
+
+/**
+ * Reload restores a transcript token floor from session storage so remounted
+ * pages do not suddenly look cheap. The same floor applies to structural
+ * penalties too: a partially remounted DOM should not make HP bounce upward on
+ * reload just because message-count / duplicate analysis has not caught up yet.
+ */
+export function mergeReloadEstimate(
+  live: ReloadMergeInputs,
+  restored:
+    | {
+        tokens: number;
+        messageCount?: number;
+        dupTokens?: number;
+        dupBlocks?: number;
+      }
+    | null
+): ReloadMergedStats {
+  return {
+    baseTokens: Math.max(live.observedTokens, restored?.tokens ?? 0),
+    messageCount: Math.max(live.observedMessageCount, restored?.messageCount ?? 0),
+    dupTokens: Math.max(live.observedDupTokens, restored?.dupTokens ?? 0),
+    dupBlocks: Math.max(live.observedDupBlocks, restored?.dupBlocks ?? 0),
+  };
+}
+
 export function effectiveLoadPct(i: LoadInputs): number {
   const turnPenalty = Math.min(TURN_CAP, Math.max(0, (i.messageCount - TURN_FREE) * TURN_STEP));
   const dupSharePct = i.budget > 0 ? (i.dupTokens / i.budget) * 100 : 0;

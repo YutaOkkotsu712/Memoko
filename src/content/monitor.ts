@@ -22,7 +22,12 @@ import {
   type ConversationEstimate,
   type Settings,
 } from '../core/settings';
-import { effectiveLoadPct, healthState, type HealthState } from '../core/health';
+import {
+  effectiveLoadPct,
+  healthState,
+  mergeReloadEstimate,
+  type HealthState,
+} from '../core/health';
 import { estimateTokensText } from '../core/tokens';
 import { MEMOKO_STATUS } from './ui/avatar';
 import { detectWaste, EMPTY_WASTE, type WasteReport } from '../core/waste';
@@ -106,8 +111,8 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   const firstSeen = new Map<string, number>();
   let visible = false;
 
-  // Session-only high-water estimate for the current conversation. This
-  // protects against host apps remounting only a visible slice after reload.
+  // Session-only token floor for the current conversation. This protects
+  // against host apps remounting only a visible slice after reload.
   let estimateConvo: string | null = null;
   let estimateCache: ConversationEstimate | null = null;
   let estimateLoadSeq = 0;
@@ -135,16 +140,22 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   };
 
   const rememberEstimate = (next: ConversationEstimate): void => {
+    // Overwrite, NOT monotonic-max. The stored estimate tracks the last
+    // SETTLED observed value, so a transient over-count or a stale
+    // high-water mark self-heals downward instead of ratcheting forever
+    // (the old monotonic gate was the cause of reloads inflating the bar).
     const prev = estimateCache;
-    const improved =
-      !prev ||
-      prev.charsPerToken !== next.charsPerToken ||
-      next.tokens > prev.tokens ||
-      next.messageCount > prev.messageCount ||
-      next.charCount > prev.charCount ||
-      next.dupTokens > prev.dupTokens ||
-      next.dupBlocks > prev.dupBlocks;
-    if (!improved) return;
+    if (
+      prev &&
+      prev.charsPerToken === next.charsPerToken &&
+      prev.tokens === next.tokens &&
+      prev.messageCount === next.messageCount &&
+      prev.charCount === next.charCount &&
+      prev.dupTokens === next.dupTokens &&
+      prev.dupBlocks === next.dupBlocks
+    ) {
+      return; // unchanged — skip the storage write
+    }
     estimateCache = next;
     saveConversationEstimate(next);
   };
@@ -259,6 +270,15 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   // Burn-rate samples for the current conversation (in-memory only).
   let burnSamples: BurnSample[] = [];
   let burnConvo: string | null = null;
+
+  // Reload/nav floor state. The restored estimate is a floor ONLY while
+  // the transcript is still rendering; it's released the moment the live
+  // DOM catches up to it, or after a short grace window, so a stale
+  // persisted high-water mark can't pin the bar after reload.
+  const FLOOR_GRACE_MS = 4000;
+  let floorConvo: string | null = null;
+  let floorReleased = false;
+  let floorSince = 0;
 
   // "Heaviest messages" — top token consumers, cycled on row click.
   const TOP_MIN_TOKENS = 500;
@@ -390,10 +410,57 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
         estimateCache && estimateCache.charsPerToken === settings.charsPerToken
           ? estimateCache
           : null;
-      // baseTokens is transcript-derived and cacheable; attachment tokens
-      // are added AFTER (and kept out of rememberEstimate) so the
-      // restored estimate can't double-count them on the next tick.
-      const baseTokens = Math.max(observedTokens, matchingEstimate?.tokens ?? 0);
+      // Convert duplicate chars at the transcript's MEASURED density, so
+      // dup numbers stay consistent with the headline estimate.
+      const observedBlendedCpt =
+        observedTokens > 0 ? transcript.charCount / observedTokens : settings.charsPerToken;
+      const observedDupTokens = Math.round(waste.avoidableChars / Math.max(0.5, observedBlendedCpt));
+
+      // Floor release: as soon as the live transcript reaches the restored
+      // floor (caught up — no bounce), or the grace window lapses (a stale
+      // high floor that live will never reach — drop to live). Either way
+      // the bar converges to the live DOM rather than a frozen value.
+      if (floorConvo !== convoId) {
+        floorConvo = convoId;
+        floorReleased = false;
+        floorSince = now;
+        // A fully-rendered static page fires no more mutations, so ensure
+        // one recompute lands after the grace window to release the floor.
+        setTimeout(() => {
+          wantFresh = true;
+          scheduleRecompute();
+        }, FLOOR_GRACE_MS + 200);
+      }
+      const floorTokens = matchingEstimate?.tokens ?? 0;
+      if (
+        !floorReleased &&
+        !transcript.anyStreaming &&
+        (observedTokens >= floorTokens || now - floorSince > FLOOR_GRACE_MS)
+      ) {
+        floorReleased = true;
+      }
+
+      // Once released, trust the live DOM; only apply the restored floor
+      // during the active render window.
+      const merged = floorReleased
+        ? {
+            baseTokens: observedTokens,
+            messageCount: transcript.messages.length,
+            dupTokens: observedDupTokens,
+            dupBlocks: waste.blocks,
+          }
+        : mergeReloadEstimate(
+            {
+              observedTokens,
+              observedMessageCount: transcript.messages.length,
+              observedDupTokens,
+              observedDupBlocks: waste.blocks,
+            },
+            matchingEstimate
+          );
+      const baseTokens = merged.baseTokens;
+      // Attachment tokens are added AFTER the restored transcript floor so the
+      // cache never folds them back in on the next tick.
       const attachedTokens = attachmentTokens(convoId);
       const tokens = baseTokens + attachedTokens;
       const usagePct = budget > 0 ? (tokens / budget) * 100 : 0;
@@ -438,31 +505,29 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
         ? { ordinal: topHeavy[0].index + 1, role: topHeavy[0].role, tokens: topHeavy[0].tokens }
         : null;
 
-      // Convert duplicate chars at the transcript's MEASURED density, so
-      // dup numbers stay consistent with the headline estimate.
-      const observedBlendedCpt =
-        observedTokens > 0 ? transcript.charCount / observedTokens : settings.charsPerToken;
-      const observedDupTokens = Math.round(waste.avoidableChars / Math.max(0.5, observedBlendedCpt));
-      const dupTokens = Math.max(observedDupTokens, matchingEstimate?.dupTokens ?? 0);
-      const dupBlocks = Math.max(waste.blocks, matchingEstimate?.dupBlocks ?? 0);
-      const messageCount = Math.max(transcript.messages.length, matchingEstimate?.messageCount ?? 0);
+      const { dupTokens, dupBlocks, messageCount } = merged;
       const adjustedPct = effectiveLoadPct({
         usagePct,
         messageCount,
         dupTokens,
         budget,
       });
-      rememberEstimate({
-        siteId: adapter.id,
-        conversationId: convoId,
-        tokens: baseTokens,
-        charsPerToken: settings.charsPerToken,
-        messageCount,
-        charCount: Math.max(transcript.charCount, matchingEstimate?.charCount ?? 0),
-        dupTokens,
-        dupBlocks,
-        at: now,
-      });
+      // Persist only the SETTLED observed value (released + not streaming,
+      // never the floor or a partial render) so the stored estimate
+      // reflects what's truly in the conversation and can decrease.
+      if (floorReleased && !transcript.anyStreaming) {
+        rememberEstimate({
+          siteId: adapter.id,
+          conversationId: convoId,
+          tokens: observedTokens,
+          charsPerToken: settings.charsPerToken,
+          messageCount: transcript.messages.length,
+          charCount: transcript.charCount,
+          dupTokens: observedDupTokens,
+          dupBlocks: waste.blocks,
+          at: now,
+        });
+      }
 
       const stats: PillStats = {
         usagePct,

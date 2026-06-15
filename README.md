@@ -18,9 +18,11 @@ and a one-click handoff to a fresh chat.
   stored and never transmitted.
 - **Persisted on disk**: your settings and the pill's position, in
   `chrome.storage.local` on your machine.
-- **Session-only estimate memory**: Memoko keeps numeric high-water counts
-  per conversation (tokens, messages, duplicates; no text) in
-  `chrome.storage.session` so reloads cannot make a long chat look cheap.
+- **Session-only estimate memory**: Memoko keeps the best known
+  conversation estimate per chat (tokens plus lightweight diagnostics, no
+  message text) in `chrome.storage.session` so reloads cannot make a long
+  chat look artificially healthier while the page is only partially
+  remounted.
 - **Read-only.** Memoko never sends messages or automates actions on
   your behalf. The handoff feature *pre-fills* the chat input — you
   always click send.
@@ -57,7 +59,10 @@ and a one-click handoff to a fresh chat.
   chat. When context takes a hit, a floating "−N HP" damage number pops
   off the pill, RPG-style.
 - **Keyboard shortcuts**: Alt+M toggles the panel, Alt+Shift+M starts a
-  handoff (rebindable at `chrome://extensions/shortcuts`).
+  handoff (rebindable at `chrome://extensions/shortcuts`), and Alt+Shift
+  letters trigger optional easter egg animations. On macOS, use Option in
+  place of Alt: Option+Shift+A through Option+Shift+T run the anime
+  finishers.
 - **Handoff**: pre-fills a prompt asking the model to compress the
   conversation's decisions, state, open threads, and key facts. You press
   send; Memoko captures the finished summary with Copy / New-chat buttons
@@ -166,7 +171,7 @@ logic.
 `syncPose()` in `src/content/ui/pill.ts` resolves the live sprite in this
 order:
 
-`konami / celebrate -> berry -> hurt -> startle -> wave -> idle stage -> attentive watch -> streaming watch -> health state`
+`konami / star / celebrate -> berry / heal -> hurt -> startle -> wave -> idle stage -> attentive watch -> streaming watch -> health state`
 
 That means a one-shot effect like Konami or wake-up will temporarily win
 over normal patrol/streaming state until its timer clears.
@@ -184,7 +189,10 @@ over normal patrol/streaming state until its timer clears.
 | Waking specifically from nap | Startle beat (`watch` + `!`) then a wave | `wake(false)` detects `idleStage === 'nap'`; `playWave(true)` sets `startling`, then `beginWave(true)` |
 | Waking from a non-nap idle | Friendly wave | `wake(false)` -> `playWave(false)` -> `beginWave(false)` |
 | Clicking the sprite once | Pet reaction based on current health, with hearts/bubble | `sprite.addEventListener('click', ...)` -> `pet()` |
+| Shift-clicking the sprite | Star-power dance | Same click handler checks `event.shiftKey` and calls `fireStarPower()` |
 | Clicking the sprite rapidly 4 times within `PET_COMBO_WINDOW_MS` (`1_600`) | Berry snack easter egg | Same click handler increments `petCombo`; when `petCombo >= BERRY_PET_COMBO` (`4`), it calls `fireBerrySnack()` |
+| Pressing `Alt+Shift+A-T` (`Option+Shift+A-T` on macOS) | Anime finisher palette: Adapt, Getsuga, Optic, Instinct, Saiyan, Fuga, Gin, Hollow, Cowl, Stand, Rengoku, Nika, Domain, Subaru, Rika, Pain, Harley, Zoro, Saitama, and Itachi | `window.addEventListener('keydown', onSecretKey)` dispatches through the alphabet action map; it reads `KeyboardEvent.code` so macOS Option symbols still map to the physical letter key |
+| Pressing `Alt+Shift+U-Z` (`Option+Shift+U-Z` on macOS) | Utility/fun extras: unlock ping, victory hop, secret wave, X-ray scan, yawn, and nap | Same `onSecretKey` map; `Alt+Shift+M` / `Option+Shift+M` can still collide with Chrome's extension command shortcut if that binding is enabled |
 | Entering the Konami sequence `↑ ↑ ↓ ↓ ← → ← → B A` | 1-UP + confetti dance | `window.addEventListener('keydown', onKonamiKey)`; a full match calls `fireKonami()` |
 | Handoff transitions into `done` | Cheer / celebration burst | `updateHandoff()` detects `view.phase === 'done'` and calls `celebrate()` |
 | Handoff saves at least `SUMMIT_SAVED_TOKENS` (`50_000`) | Summit clear flag/glow easter egg | Inside the same `updateHandoff()` transition, `saved >= SUMMIT_SAVED_TOKENS` calls `fireSummitClear()` |

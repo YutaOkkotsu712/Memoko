@@ -292,9 +292,11 @@ export async function loadAdapterHealth(
 }
 
 /**
- * Session-only estimate floor: chat sites may remount only part of a long
- * transcript after reload, so a DOM-only count can suddenly undercount. Store
- * numeric high-water marks per conversation, never message text.
+ * Session-only conversation estimate floor: chat sites may remount only part
+ * of a long transcript after reload, so a DOM-only count can suddenly
+ * undercount and look healthier than the real chat. Store the best known
+ * per-conversation estimate (plus lightweight diagnostics), never message
+ * text.
  */
 export interface ConversationEstimate {
   siteId: string;

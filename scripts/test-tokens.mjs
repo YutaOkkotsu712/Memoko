@@ -74,6 +74,32 @@ const cases = [
     },
   },
   {
+    name: 'long opaque run (URL) charged denser than the same length of prose',
+    run: () => {
+      const url = 'https://example.com/path/to/a/very/long/resource?id=abc123def456ghi789xyz';
+      const proseSameLen = 'word '.repeat(Math.ceil(url.length / 5)).slice(0, url.length);
+      // a single long whitespace-free run shatters into many subword
+      // tokens → strictly more than equally-long ordinary prose
+      return estimateTokensText(url, CPT) > estimateTokensText(proseSameLen, CPT);
+    },
+  },
+  {
+    name: 'long opaque run lands near the opaque rate (~2.3 chars/tok)',
+    run: () => {
+      const blob = 'a'.repeat(400); // a 400-char hash/base64-style run
+      const t = estimateTokensText(blob, CPT);
+      return t >= blob.length / 2.8 && t <= blob.length / 1.9;
+    },
+  },
+  {
+    name: 'short words are NOT treated as opaque (prose unchanged)',
+    run: () => {
+      // ordinary prose has no 24+ char runs → identical to the prose anchor
+      const t = estimateTokensText(prose, CPT);
+      return t >= prose.length / 4.4 && t <= prose.length / 3.0;
+    },
+  },
+  {
     name: 'CJK ≈ 1 token per character (band 0.85–1.15)',
     run: () => {
       const t = estimateTokensText(cjk, CPT);

@@ -3,7 +3,7 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
   manifest_version: 3,
   name: 'Memoko — Context Health for AI Chats',
-  version: '0.6.0',
+  version: '0.6.2',
   description:
     'A health-bar companion for AI chats: Memoko runs while context is fresh, collapses when full. 100% local. claude.ai + chatgpt.com.',
   permissions: ['storage'],

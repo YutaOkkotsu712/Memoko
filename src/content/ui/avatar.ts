@@ -21,7 +21,24 @@ export type MemokoPose =
   | 'nap'
   | 'wave'
   | 'yawn'
-  | 'doodle';
+  | 'doodle'
+  | 'swing'
+  | 'smash'
+  | 'punch'
+  | 'cast'
+  | 'roar'
+  | 'raise'
+  | 'point'
+  | 'smug'
+  | 'dodge'
+  | 'clutch'
+  | 'charge'
+  | 'visor'
+  | 'genjutsu'
+  | 'deadpan'
+  | 'flash'
+  | 'menace'
+  | 'fierce';
 
 const HAIR = 'var(--mk-hair, #e893a8)';
 const HAIR_PALE = 'var(--mk-hair-pale, #b69ca7)';
@@ -213,6 +230,28 @@ function features(pose: MemokoPose): string {
         px(8, 22, 3, 2, BLUSH, '', 0.65) +
         px(21, 22, 3, 2, BLUSH, '', 0.65)
       );
+    // Combat faces for the Anime Ultimates poses.
+    case 'fierce':
+      return (
+        px(9, 15, 2, 1, INK) + px(11, 16, 2, 1, INK) +
+        px(19, 16, 2, 1, INK) + px(21, 15, 2, 1, INK) +
+        pixelEyes('alert') +
+        px(13, 24, 6, 1, MOUTH) + px(13, 23, 1, 1, MOUTH) + px(18, 23, 1, 1, MOUTH)
+      );
+    case 'roar':
+      return (
+        px(9, 15, 2, 1, INK) + px(11, 16, 2, 1, INK) +
+        px(19, 16, 2, 1, INK) + px(21, 15, 2, 1, INK) +
+        pixelEyes('alert') +
+        px(13, 23, 6, 4, MOUTH) + px(14, 24, 4, 2, '#7a2030')
+      );
+    case 'smug':
+      return (
+        pixelEyes('calm') +
+        px(12, 15, 3, 1, INK, '', 0.55) + px(19, 15, 3, 1, INK, '', 0.55) +
+        px(15, 23, 5, 1, MOUTH) + px(20, 22, 1, 1, MOUTH) +
+        px(8, 22, 3, 2, BLUSH, '', 0.5) + px(21, 22, 3, 2, BLUSH, '', 0.5)
+      );
     // 'sit' and 'wave' reuse the cheerful 'fresh' face below.
     default:
       return features('fresh');
@@ -283,6 +322,23 @@ export function spriteSvg(pose: MemokoPose, size: number): string {
       return yawnSvg(size);
     case 'doodle':
       return doodleSvg(size);
+    case 'swing':
+    case 'smash':
+    case 'punch':
+    case 'cast':
+    case 'roar':
+    case 'raise':
+    case 'point':
+    case 'smug':
+    case 'dodge':
+    case 'clutch':
+    case 'charge':
+    case 'visor':
+    case 'genjutsu':
+    case 'deadpan':
+    case 'flash':
+    case 'menace':
+      return comboSvg(pose, size);
     default:
       return standSvg(pose, size);
   }
@@ -304,6 +360,134 @@ function standingLegs(pale = false): string {
 
 function arm(cls: string, d: string, pale = false, handX = 0, handY = 0): string {
   return `<g class="${cls}">${stroke(d, limb(pale), 2.8)}${px(handX, handY, 3, 3, limb(pale))}</g>`;
+}
+
+/** Wide braced fighting stance: feet staggered and planted. */
+function braceLegs(pale = false): string {
+  return (
+    `<g class="sp-legA">${stroke('M21.0 32.5 L18.6 44.2', limb(pale), 2.5)}${boot(16, 44)}</g>` +
+    `<g class="sp-legB">${stroke('M27.0 32.5 L29.0 44.2', limb(pale), 2.5)}${boot(28, 44)}</g>`
+  );
+}
+
+/** Combat / action poses for the Anime Ultimates. One rig, arms vary per pose. */
+function comboSvg(pose: MemokoPose, size: number): string {
+  const w = Math.round((size * 48) / 50);
+  let arms = '';
+  let face: MemokoPose = 'fierce';
+  let lean = 0;
+  let headRot = 0;
+  let legs = standingLegs();
+  switch (pose) {
+    case 'swing': // two-handed weapon raised high to her right
+      legs = braceLegs();
+      arms = arm('sp-armA', 'M20.4 23 L25.6 15.4', false, 25, 13) +
+        arm('sp-armB', 'M27.6 23 L28.6 14.4', false, 27.5, 12);
+      headRot = -6;
+      break;
+    case 'smash': // two-handed overhead (hammer)
+      legs = braceLegs();
+      arms = arm('sp-armA', 'M20.4 22.6 L24.6 12.8', false, 24, 10.6) +
+        arm('sp-armB', 'M27.6 22.6 L26.6 12.4', false, 26, 10.2);
+      headRot = -4;
+      break;
+    case 'punch': // right fist thrust forward, left pulled to hip
+      arms = arm('sp-armB', 'M27.8 23 L35 21.4', false, 35, 20) +
+        arm('sp-armA', 'M20.2 23 L17.4 26', false, 16, 26);
+      headRot = 3;
+      break;
+    case 'cast': // both palms pushed forward
+      arms = arm('sp-armA', 'M20.4 23 L25 24.4', false, 25, 23.4) +
+        arm('sp-armB', 'M27.6 23 L33 23', false, 33, 22);
+      headRot = 2;
+      break;
+    case 'roar': // leaning forward, arms back, shouting
+      face = 'roar';
+      arms = arm('sp-armA', 'M20.2 23 L16.6 26.6', false, 15, 26) +
+        arm('sp-armB', 'M27.8 23 L31.4 26.6', false, 31, 26);
+      lean = 6;
+      headRot = 6;
+      break;
+    case 'raise': // one arm raised straight up
+      arms = arm('sp-armB', 'M27.8 22.6 L30 12.4', false, 29, 11) +
+        arm('sp-armA', 'M20.2 23 L18.8 30', false, 17.5, 30);
+      headRot = -3;
+      break;
+    case 'point': // one arm extended forward, confident
+      face = 'smug';
+      arms = arm('sp-armB', 'M27.8 23 L35 19.4', false, 35, 18) +
+        arm('sp-armA', 'M20.2 23 L19 30', false, 18, 30);
+      headRot = 2;
+      break;
+    case 'smug': // arms crossed over the chest
+      face = 'smug';
+      arms = `<g class="sp-armA">${stroke('M20.6 24 L26.4 27.2', LIMB, 2.8)}${px(26, 26, 3, 3, LIMB)}</g>` +
+        `<g class="sp-armB">${stroke('M27.4 24 L21.6 27.2', LIMB, 2.8)}${px(19, 26, 3, 3, LIMB)}</g>`;
+      break;
+    case 'dodge': // calm Ultra-Instinct lean, arms loose
+      face = 'watch';
+      arms = arm('sp-armA', 'M20.2 23 L17.8 29.6', false, 16.5, 29) +
+        arm('sp-armB', 'M27.8 23 L30.2 29.6', false, 30, 29);
+      lean = -10;
+      headRot = -6;
+      break;
+    case 'clutch': // hunched, hands up by the head (despair)
+      face = 'hurt';
+      legs = braceLegs();
+      arms = arm('sp-armA', 'M20.4 23.4 L18.4 18', false, 17, 16.5) +
+        arm('sp-armB', 'M27.6 23.4 L29.6 18', false, 29, 16.5);
+      lean = 4;
+      headRot = 10;
+      break;
+    case 'charge': // braced power-up, fists clenched low
+      legs = braceLegs();
+      arms = `<g class="sp-armA">${stroke('M20.2 23 L18.4 29.2', LIMB, 2.8)}${px(17.4, 28.8, 3.4, 3.4, LIMB)}</g>` +
+        `<g class="sp-armB">${stroke('M27.8 23 L29.6 29.2', LIMB, 2.8)}${px(28, 28.8, 3.4, 3.4, LIMB)}</g>`;
+      lean = 5;
+      headRot = 4;
+      break;
+    case 'visor': // one hand up at her temple
+      arms = arm('sp-armB', 'M27.8 23 L25.6 16.6', false, 23.4, 14.8) +
+        arm('sp-armA', 'M20.2 23 L19 30', false, 18, 30);
+      headRot = 3;
+      break;
+    case 'genjutsu': // one hand raised by the face, calm
+      face = 'smug';
+      arms = arm('sp-armB', 'M27.8 23 L29.4 16', false, 28.4, 14) +
+        arm('sp-armA', 'M20.2 23 L19 30', false, 18, 30);
+      headRot = -2;
+      break;
+    case 'deadpan': // flat, arms at sides, unimpressed
+      face = 'healthy';
+      arms = arm('sp-armA', 'M20 23 L19.4 31', false, 18, 31) +
+        arm('sp-armB', 'M28 23 L28.6 31', false, 28, 31);
+      break;
+    case 'flash': // both hands thrust together forward-right (Final Flash)
+      legs = braceLegs();
+      arms = arm('sp-armA', 'M20.4 23 L31 22', false, 31.5, 20.6) +
+        arm('sp-armB', 'M27.6 23 L33.4 22', false, 34, 20.6);
+      lean = 3;
+      headRot = 3;
+      break;
+    case 'menace': // arms flung out wide, head back (time-stop)
+      face = 'smug';
+      arms = arm('sp-armA', 'M20.2 23 L12.8 16.8', false, 11, 15) +
+        arm('sp-armB', 'M27.8 23 L35.2 16.8', false, 35, 15);
+      headRot = -8;
+      break;
+    default:
+      break;
+  }
+  const headInner = headRot ? `<g transform="rotate(${headRot} 16 17.6)">${head(face)}</g>` : head(face);
+  return (
+    `<svg viewBox="0 0 48 50" width="${w}" height="${size}" class="sp sp-combo sp-${pose}" aria-hidden="true" shape-rendering="crispEdges" style="display:block;overflow:visible">` +
+    `<g transform="rotate(${lean} 24 46)"><g class="sp-bob">` +
+    legs +
+    dress(21) +
+    arms +
+    `<g class="sp-headG"><g transform="translate(12.4 0.5) scale(0.72)">${headInner}</g></g>` +
+    `</g></g></svg>`
+  );
 }
 
 function dress(y: number, pale = false, seated = false): string {
