@@ -191,7 +191,11 @@ export const chatgptAdapter: SiteAdapter = {
         cached && !cached.streaming && !streaming ? cached.text : (el.textContent ?? '');
       textCache.set(el, { text, streaming });
 
-      messages.push({ role, text, streaming, el });
+      // data-message-id is stable per turn and survives scroll/remount —
+      // the key the monitor accumulates on, so a virtualized list doesn't
+      // make the count bounce and a double-mount can't count twice.
+      const id = el.getAttribute('data-message-id') ?? undefined;
+      messages.push({ role, text, streaming, el, id });
       accepted.push(el);
       charCount += text.length;
       anyStreaming = anyStreaming || streaming;
@@ -252,5 +256,28 @@ export const chatgptAdapter: SiteAdapter = {
 
   observeRoot(): Node {
     return document.body;
+  },
+
+  scrollContainer(): HTMLElement | null {
+    // The scrollable ancestor of the messages. Walk up from a message and
+    // return the first element that actually scrolls; fall back to known
+    // ChatGPT thread containers.
+    try {
+      const msg = document.querySelector<HTMLElement>('[data-message-author-role]');
+      let el: HTMLElement | null = msg?.parentElement ?? null;
+      for (let hops = 0; el && hops < 12; hops++, el = el.parentElement) {
+        const oy = getComputedStyle(el).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 40) {
+          return el;
+        }
+      }
+      for (const sel of ['main .overflow-y-auto', 'main', '[role="presentation"]']) {
+        const c = document.querySelector<HTMLElement>(sel);
+        if (c && c.scrollHeight > c.clientHeight + 40) return c;
+      }
+    } catch {
+      // degrade silently
+    }
+    return null;
   },
 };

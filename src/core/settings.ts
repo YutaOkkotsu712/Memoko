@@ -34,6 +34,8 @@ export interface Settings {
     badge: boolean;
     /** Auto-detect the page's model and use its context window as budget. */
     autoBudget: boolean;
+    /** Use the real BPE tokenizer (o200k) for exact/closer counts. */
+    preciseTokens: boolean;
   };
 }
 
@@ -53,12 +55,16 @@ export const DEFAULT_SETTINGS: Settings = {
     bubbles: true,
     badge: true,
     autoBudget: true,
+    preciseTokens: true,
   },
 };
 
 const SETTINGS_KEY = 'settings';
 const LEGACY_DEFAULT_THRESHOLDS: Thresholds = { healthy: 40, heavy: 70, critical: 90 };
 const LEGACY_DEFAULT_PASTE_AUDIT_MIN_TOKENS = 1000;
+const SAFE_SETTING_KEY = /^[a-z0-9_-]{1,32}$/i;
+const isSafeSettingKey = (key: string): boolean =>
+  SAFE_SETTING_KEY.test(key) && key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
 
 export function mergeSettings(raw: unknown): Settings {
   const merged = structuredClone(DEFAULT_SETTINGS);
@@ -72,7 +78,7 @@ export function mergeSettings(raw: unknown): Settings {
   }
   if (r.budgets && typeof r.budgets === 'object') {
     for (const [site, v] of Object.entries(r.budgets)) {
-      if (typeof v === 'number' && v > 0) merged.budgets[site] = v;
+      if (isSafeSettingKey(site) && typeof v === 'number' && v > 0) merged.budgets[site] = v;
     }
   }
   if (typeof r.charsPerToken === 'number' && r.charsPerToken > 0) {
@@ -92,7 +98,9 @@ export function mergeSettings(raw: unknown): Settings {
     }
   }
   if (r.sites && typeof r.sites === 'object') {
-    Object.assign(merged.sites, r.sites);
+    for (const [site, enabled] of Object.entries(r.sites)) {
+      if (isSafeSettingKey(site) && typeof enabled === 'boolean') merged.sites[site] = enabled;
+    }
   }
   if (typeof r.draftMinTokens === 'number' && r.draftMinTokens >= 0) {
     merged.draftMinTokens = r.draftMinTokens;
@@ -112,6 +120,7 @@ export function mergeSettings(raw: unknown): Settings {
       'bubbles',
       'badge',
       'autoBudget',
+      'preciseTokens',
     ] as const) {
       const v = r.features[key];
       if (typeof v === 'boolean') merged.features[key] = v;
@@ -303,6 +312,8 @@ export interface ConversationEstimate {
   conversationId: string;
   tokens: number;
   charsPerToken: number;
+  /** Which estimator produced this: 'h' heuristic, 'p' precise BPE. */
+  mode: 'h' | 'p';
   messageCount: number;
   charCount: number;
   dupTokens: number;
@@ -339,6 +350,7 @@ function validConversationEstimate(
     conversationId,
     tokens: Math.max(0, Math.round(value.tokens)),
     charsPerToken: value.charsPerToken,
+    mode: value.mode === 'p' ? 'p' : 'h', // default/legacy → heuristic
     messageCount: Math.max(0, Math.round(value.messageCount)),
     charCount: Math.max(0, Math.round(value.charCount)),
     dupTokens: Math.max(0, Math.round(value.dupTokens)),

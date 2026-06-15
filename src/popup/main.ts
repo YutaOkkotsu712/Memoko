@@ -34,6 +34,7 @@ function populate(s: Settings): void {
   $('feat-bubbles').checked = s.features.bubbles;
   $('feat-badge').checked = s.features.badge;
   $('feat-autobudget').checked = s.features.autoBudget;
+  $('feat-precise').checked = s.features.preciseTokens;
   $('budget-claude').value = String(budgetFor(s, 'claude'));
   $('budget-chatgpt').value = String(budgetFor(s, 'chatgpt'));
   $('cpt').value = String(s.charsPerToken);
@@ -79,6 +80,7 @@ function collect(): Settings {
       bubbles: $('feat-bubbles').checked,
       badge: $('feat-badge').checked,
       autoBudget: $('feat-autobudget').checked,
+      preciseTokens: $('feat-precise').checked,
     },
   };
 }

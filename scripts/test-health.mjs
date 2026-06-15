@@ -124,4 +124,22 @@ for (const c of cases) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${c.name}  → ${out}`);
   if (!ok) failed++;
 }
+
+// ---- shouldUpdateEstimate (display-stability rule) -------------------------
+import { shouldUpdateEstimate } from '../src/core/health.ts';
+const E = (tokens, mode = 'p', charsPerToken = 3.6) => ({ tokens, mode, charsPerToken });
+const stableCases = [
+  { name: 'nothing stored → store', run: () => shouldUpdateEstimate(null, E(50)) === true },
+  { name: 'partial re-render does NOT lower the locked-in count', run: () => shouldUpdateEstimate(E(49), E(38)) === false },
+  { name: 'a larger full render advances it', run: () => shouldUpdateEstimate(E(49), E(55)) === true },
+  { name: 'equal count is a no-op (no write)', run: () => shouldUpdateEstimate(E(49), E(49)) === false },
+  { name: 'mode switch heuristic→precise replaces', run: () => shouldUpdateEstimate(E(38, 'h'), E(49, 'p')) === true },
+  { name: 'precise→heuristic (precise failed) replaces', run: () => shouldUpdateEstimate(E(49, 'p'), E(38, 'h')) === true },
+  { name: 'chars-per-token recalibration replaces even if smaller', run: () => shouldUpdateEstimate(E(49, 'p', 3.6), E(40, 'p', 4.2)) === true },
+];
+for (const c of stableCases) {
+  const ok = c.run();
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${c.name}`);
+  if (!ok) failed++;
+}
 process.exit(failed === 0 ? 0 : 1);

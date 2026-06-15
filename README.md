@@ -126,6 +126,27 @@ health total, shown as "(+~12k attached)" on the tokens line. It's
 conservative — keyed by content hash and never decremented — so it errs
 toward warning early.
 
+**Precise tokenizer** (on by default): when enabled, Memoko lazy-loads a
+real BPE tokenizer (o200k_base — the encoder GPT-4o actually uses) for
+settled messages. On **ChatGPT/GPT this is exact**; on **Claude it's a
+close proxy** (Claude's tokenizer isn't public, but o200k correlates
+within a few percent and handles CJK properly), so Claude's number is
+more accurate than the heuristic but still a labeled estimate. The
+~2.3 MB rank data is a separate chunk that only loads when precise mode
+is on, runs 100% locally (no network), and the character heuristic
+stays as the instant fallback — during load, for streaming messages,
+and if the tokenizer can't load at all.
+
+**Virtualized chats (ChatGPT).** ChatGPT only keeps a scroll window of
+messages in the DOM, so Memoko counts by stable message id and keeps a
+per-conversation ledger (persisted locally, id → role + token estimate,
+never text). A chat reads correctly as you scroll and reloads at its full
+total once seen. For an *old* chat the extension has never observed, click
+**Index chat** (top-centre chip): Memoko saves your scroll position,
+slow-scrolls the conversation so every message renders and is counted,
+then restores your position — cancellable, never during a reply. After
+that the chat is fully known and reloads instantly.
+
 It still can't see server-side context it never observed (system prompt,
 tool definitions, file-picker uploads, artifacts), so treat it as a
 lower bound.

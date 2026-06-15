@@ -2550,6 +2550,7 @@ export function createPill(opts: PillOptions): PillUI {
 
   sprite.style.pointerEvents = 'auto';
   sprite.addEventListener('click', (e) => {
+    if (!e.isTrusted) return;
     e.stopPropagation();
     if (e.shiftKey) {
       e.preventDefault();
@@ -2617,6 +2618,7 @@ export function createPill(opts: PillOptions): PillUI {
   };
 
   const onKonamiKey = (e: KeyboardEvent) => {
+    if (!e.isTrusted) return;
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     if (k === KONAMI[konamiIdx]) {
       konamiIdx += 1;
@@ -2638,6 +2640,7 @@ export function createPill(opts: PillOptions): PillUI {
   };
   // Track whether Space is held so it can act as a chord modifier.
   const onSpaceTrack = (e: KeyboardEvent) => {
+    if (!e.isTrusted) return;
     if (e.code !== 'Space' && e.key !== ' ') return;
     if (e.type === 'keydown') {
       if (!isEditableTarget(e.target)) spaceHeld = true;
@@ -2649,6 +2652,7 @@ export function createPill(opts: PillOptions): PillUI {
   // Hold Space + tap a letter (A–Z) to fire each Anime Ultimate. Space is the
   // chord modifier so it works on macOS (where Alt types special characters).
   const onSecretKey = (e: KeyboardEvent) => {
+    if (!e.isTrusted) return;
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     if (!spaceHeld || isEditableTarget(e.target)) return;
     if (e.code === 'Space' || e.key === ' ') return;
@@ -2738,6 +2742,7 @@ export function createPill(opts: PillOptions): PillUI {
   };
 
   handoffBox.addEventListener('click', (e) => {
+    if (!e.isTrusted) return;
     const btn = (e.target as HTMLElement).closest('[data-action]');
     if (!(btn instanceof HTMLElement) || btn.hasAttribute('disabled')) return;
     const action = btn.getAttribute('data-action');
@@ -2785,6 +2790,7 @@ export function createPill(opts: PillOptions): PillUI {
   };
 
   pill.addEventListener('pointerdown', (e) => {
+    if (!e.isTrusted) return;
     if (e.button !== 0) return;
     drag = {
       pointerId: e.pointerId,

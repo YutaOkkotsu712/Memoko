@@ -20,6 +20,15 @@ export interface TranscriptMessage {
   streaming: boolean;
   /** The message's DOM element (for scroll-to-highlight). */
   el?: HTMLElement;
+  /**
+   * Stable per-message id, if the site exposes one (ChatGPT's
+   * data-message-id). Lets the monitor accumulate token counts across a
+   * VIRTUALIZED message list — counting each message once and keeping it
+   * counted after it scrolls out of the DOM — instead of fluctuating with
+   * scroll position. Absent on sites that render the full transcript at
+   * once (claude.ai), which don't need it.
+   */
+  id?: string;
 }
 
 export interface Transcript {
@@ -97,4 +106,11 @@ export interface SiteAdapter {
 
   /** Node to attach the MutationObserver to. */
   observeRoot(): Node;
+
+  /**
+   * The scrollable element holding the transcript, for the indexing sweep
+   * (scrolling a virtualized list to render every message). Optional —
+   * only sites that virtualize (chatgpt.com) need it; absent → no sweep.
+   */
+  scrollContainer?(): HTMLElement | null;
 }

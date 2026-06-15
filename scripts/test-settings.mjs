@@ -69,6 +69,22 @@ const cases = [
     },
   },
   {
+    name: 'dangerous dynamic setting keys are ignored',
+    run: () => {
+      const s = mergeSettings({
+        budgets: { __proto__: 1_000_000, constructor: 1_000_000, chatgpt: 64_000 },
+        sites: { __proto__: false, constructor: false, claude: false, chatgpt: true },
+      });
+      return (
+        Object.getPrototypeOf(s.budgets) === Object.prototype &&
+        Object.getPrototypeOf(s.sites) === Object.prototype &&
+        budgetFor(s, 'chatgpt') === 64_000 &&
+        s.sites.claude === false &&
+        s.sites.chatgpt === true
+      );
+    },
+  },
+  {
     name: 'merge never mutates DEFAULT_SETTINGS',
     run: () => {
       mergeSettings({ budgets: { claude: 1_000 } });

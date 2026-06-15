@@ -98,3 +98,23 @@ export function effectiveLoadPct(i: LoadInputs): number {
   const dupPenalty = Math.min(DUP_CAP, dupSharePct * DUP_WEIGHT);
   return i.usagePct + turnPenalty + dupPenalty;
 }
+
+/**
+ * Whether a settled observation should overwrite the persisted estimate.
+ * The displayed token count is driven by this stored value (steady across
+ * reloads), so the rule decides what's allowed to move it:
+ *  - nothing stored yet → store it;
+ *  - chars-per-token recalibrated → stored tokens are stale, replace;
+ *  - tokenizer mode changed (heuristic ↔ precise) → replace;
+ *  - same mode + cpt → advance only when the count grows (monotonic), so a
+ *    partial re-render can never lower a locked-in full count.
+ */
+export function shouldUpdateEstimate(
+  stored: { tokens: number; mode: 'h' | 'p'; charsPerToken: number } | null,
+  next: { tokens: number; mode: 'h' | 'p'; charsPerToken: number }
+): boolean {
+  if (!stored) return true;
+  if (stored.charsPerToken !== next.charsPerToken) return true;
+  if (stored.mode !== next.mode) return true;
+  return next.tokens > stored.tokens;
+}

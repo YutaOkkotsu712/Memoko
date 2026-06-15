@@ -3,10 +3,16 @@ import { defineManifest } from '@crxjs/vite-plugin';
 export default defineManifest({
   manifest_version: 3,
   name: 'Memoko — Context Health for AI Chats',
-  version: '0.6.2',
+  version: '0.9.1',
   description:
     'A health-bar companion for AI chats: Memoko runs while context is fresh, collapses when full. 100% local. claude.ai + chatgpt.com.',
   permissions: ['storage'],
+  // Pin the popup/extension-page CSP to self-only (MV3's default, made
+  // explicit): no remote scripts, no inline eval, no plugins, no <base>
+  // hijack. Belt-and-braces against a future change relaxing it.
+  content_security_policy: {
+    extension_pages: "script-src 'self'; object-src 'self'; base-uri 'none'",
+  },
   background: {
     service_worker: 'src/background.ts',
     type: 'module',

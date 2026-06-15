@@ -288,6 +288,7 @@ export function createDraftMeter(
   };
 
   auditEl.addEventListener('click', (e) => {
+    if (!e.isTrusted) return;
     const btn = (e.target as HTMLElement).closest('[data-cleanup]');
     if (!(btn instanceof HTMLElement)) return;
     const id = btn.getAttribute('data-cleanup');

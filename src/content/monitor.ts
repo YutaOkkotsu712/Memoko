@@ -3,29 +3,36 @@ import { attachmentTokens } from '../core/attachments';
 import { burnPerMin, minutesUntil, pruneSamples, type BurnSample } from '../core/burn';
 import { debounce } from '../core/debounce';
 import { matchModelBudget } from '../core/models';
+import { upsertLedger, ledgerTotals, type LedgerEntry, type LedgerItem } from '../core/ledger';
+import {
+  loadLedger,
+  saveLedger,
+  enforceLedgerCap,
+  loadIndexedAt,
+  markIndexed,
+} from '../core/ledgerStore';
+import { createIndexer } from './indexer';
+import { createIndexUI } from './indexUI';
+import { countPrecise, ensurePreciseEncoder, preciseReady } from '../core/preciseTokenizer';
 import {
   budgetFor,
   loadCoachMark,
-  loadConversationEstimate,
   loadOnboarded,
   loadPillState,
   loadSettings,
   onSettingsChanged,
   reportAdapterHealth,
-  saveConversationEstimate,
   saveCoachMark,
   saveOnboarded,
   savePillState,
   stashHandoff,
   takeHandoffStash,
   type AdapterStatus,
-  type ConversationEstimate,
   type Settings,
 } from '../core/settings';
 import {
   effectiveLoadPct,
   healthState,
-  mergeReloadEstimate,
   type HealthState,
 } from '../core/health';
 import { estimateTokensText } from '../core/tokens';
@@ -41,6 +48,17 @@ const AGE_REFRESH_MS = 30_000;
 export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   let settings: Settings = await loadSettings();
   const pillState = await loadPillState();
+
+  // Precise tokenizer: lazy-load the real BPE encoder when enabled; once
+  // ready, recompute so counts refine from heuristic → precise.
+  let usePreciseTokens = settings.features.preciseTokens;
+  const loadPreciseIfEnabled = () => {
+    if (usePreciseTokens && !preciseReady()) {
+      void ensurePreciseEncoder()
+        .then(() => scheduleRecompute())
+        .catch(() => {});
+    }
+  };
 
   let uiRef: PillUI | null = null;
   let canStartHandoff = false;
@@ -91,7 +109,8 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
           if (v.phase === 'done' && v.resultText) {
             void stashHandoff(adapter.id, v.resultText);
           }
-          window.open(adapter.newChatUrl(), '_blank');
+          const opened = window.open(adapter.newChatUrl(), '_blank', 'noopener,noreferrer');
+          if (opened) opened.opener = null;
         } catch {
           // degrade silently
         }
@@ -104,6 +123,76 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   // (including the new-chat page, where there is no conversation id).
   createDraftMeter(adapter, () => settings);
 
+  // Indexing sweep (virtualized sites only). Re-reads the visible window
+  // and upserts every message id into the ledger — the same capture the
+  // recompute uses — so the sweep and normal browsing share one path.
+  let lastStreaming = false;
+  let isIndexed = false; // this conversation already fully swept
+  let promptVisible = false;
+  const ledgerHasChanges = (items: readonly LedgerItem[]): boolean => {
+    for (const item of items) {
+      const prev = ledger.get(item.id);
+      if (!prev || prev.tokens !== item.tokens || prev.role !== item.role) return true;
+    }
+    return false;
+  };
+  const captureVisible = () => {
+    try {
+      if (!ledgerConvo || adapter.conversationId(location) !== ledgerConvo) return;
+      const t = adapter.readTranscript({ fresh: true });
+      if (!t) return;
+      transcriptTokens(t.messages, settings.charsPerToken); // fills lastCounts
+      const items: LedgerItem[] = [];
+      for (let i = 0; i < t.messages.length; i++) {
+        const m = t.messages[i]!;
+        if (m.id) items.push({ id: m.id, tokens: lastCounts[i] ?? 0, role: m.role });
+      }
+      if (items.length === 0) return;
+      const changed = ledgerHasChanges(items);
+      upsertLedger(ledger, items);
+      if (changed && !t.anyStreaming) {
+        ledgerDirty = true;
+        scheduleLedgerSave();
+      }
+    } catch {
+      // degrade silently
+    }
+  };
+
+  const indexUI = adapter.scrollContainer
+    ? createIndexUI({
+        onIndex: () => void indexer?.run(),
+        onCancel: () => indexer?.cancel(),
+      })
+    : null;
+  const indexer = adapter.scrollContainer
+    ? createIndexer({
+        scrollContainer: () => adapter.scrollContainer?.() ?? null,
+        capture: captureVisible,
+        size: () => ledger.size,
+        streaming: () => lastStreaming,
+        onProgress: (p) => {
+          promptVisible = false; // the indexer owns the chip during/after a sweep
+          if (p.phase === 'running') {
+            indexUI?.showProgress(p.found);
+          } else if (p.phase === 'done') {
+            isIndexed = true;
+            if (ledgerConvo) {
+              ledgerDirty = false;
+              void saveLedger(adapter.id, ledgerConvo, ledger);
+              void markIndexed(adapter.id, ledgerConvo);
+            }
+            scheduleRecompute();
+            indexUI?.flash(`Indexed ${p.found} messages ✓`);
+          } else if (p.phase === 'cancelled') {
+            indexUI?.flash('Indexing cancelled');
+          } else {
+            indexUI?.hide();
+          }
+        },
+      })
+    : null;
+
   // When the user first opened each conversation in this tab. SPA
   // navigation is detected purely by conversationId changing between
   // recomputes — DOM mutations always accompany a route change, so the
@@ -111,53 +200,30 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   const firstSeen = new Map<string, number>();
   let visible = false;
 
-  // Session-only token floor for the current conversation. This protects
-  // against host apps remounting only a visible slice after reload.
-  let estimateConvo: string | null = null;
-  let estimateCache: ConversationEstimate | null = null;
-  let estimateLoadSeq = 0;
-  let estimateLoading = false;
+  // Token ledger for virtualized message lists, keyed by stable message
+  // id (see core/ledger.ts). Hydrated from chrome.storage.local per
+  // conversation so a previously-seen chat shows its full total instantly
+  // on reload instead of re-accumulating from the scroll window.
+  let ledgerConvo: string | null = null;
+  let ledger = new Map<string, LedgerEntry>();
+  let ledgerLoadSeq = 0;
+  let ledgerDirty = false;
+  let ledgerSaveTimer = 0;
 
-  const ensureEstimateCache = (convoId: string): boolean => {
-    if (estimateConvo === convoId) return !estimateLoading;
-    estimateConvo = convoId;
-    estimateCache = null;
-    estimateLoading = true;
-    const seq = ++estimateLoadSeq;
-    void loadConversationEstimate(adapter.id, convoId)
-      .then((estimate) => {
-        if (seq !== estimateLoadSeq || estimateConvo !== convoId) return;
-        estimateCache = estimate;
-        estimateLoading = false;
-        scheduleRecompute();
-      })
-      .catch(() => {
-        if (seq !== estimateLoadSeq || estimateConvo !== convoId) return;
-        estimateLoading = false;
-        scheduleRecompute();
-      });
-    return false;
+  const flushLedgerSave = () => {
+    if (!ledgerDirty || !ledgerConvo) return;
+    const convoId = ledgerConvo;
+    const entries = ledger;
+    ledgerDirty = false;
+    void saveLedger(adapter.id, convoId, entries);
   };
 
-  const rememberEstimate = (next: ConversationEstimate): void => {
-    // Overwrite, NOT monotonic-max. The stored estimate tracks the last
-    // SETTLED observed value, so a transient over-count or a stale
-    // high-water mark self-heals downward instead of ratcheting forever
-    // (the old monotonic gate was the cause of reloads inflating the bar).
-    const prev = estimateCache;
-    if (
-      prev &&
-      prev.charsPerToken === next.charsPerToken &&
-      prev.tokens === next.tokens &&
-      prev.messageCount === next.messageCount &&
-      prev.charCount === next.charCount &&
-      prev.dupTokens === next.dupTokens &&
-      prev.dupBlocks === next.dupBlocks
-    ) {
-      return; // unchanged — skip the storage write
-    }
-    estimateCache = next;
-    saveConversationEstimate(next);
+  const scheduleLedgerSave = () => {
+    if (ledgerSaveTimer) return;
+    ledgerSaveTimer = setTimeout(() => {
+      ledgerSaveTimer = 0;
+      flushLedgerSave();
+    }, 4000) as unknown as number;
   };
 
   // Waste analysis is a full-transcript pass, so it's gated (only when
@@ -241,23 +307,39 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   // equality at the same index is enough to reuse a count — no hashing,
   // no re-walk. During streaming exactly one message misses.
   let lastCpt = 0;
+  let lastMode = '';
   let lastTexts: string[] = [];
   let lastCounts: number[] = [];
   const transcriptTokens = (
-    messages: ReadonlyArray<{ text: string }>,
+    messages: ReadonlyArray<{ text: string; streaming?: boolean }>,
     cpt: number
   ): number => {
-    if (cpt !== lastCpt) {
+    // Precise BPE for settled messages when the encoder is loaded; the
+    // heuristic for streaming messages (don't re-encode a growing message
+    // every tick) and as the always-available fallback. The mode is part
+    // of the cache key so flipping to precise re-counts cleanly.
+    const precise = usePreciseTokens && preciseReady();
+    const mode = precise ? 'p' : 'h';
+    if (cpt !== lastCpt || mode !== lastMode) {
       lastTexts = [];
       lastCounts = [];
       lastCpt = cpt;
+      lastMode = mode;
     }
     const texts: string[] = new Array(messages.length);
     const counts: number[] = new Array(messages.length);
     let total = 0;
     for (let i = 0; i < messages.length; i++) {
-      const text = messages[i]!.text;
-      const t = text === lastTexts[i] ? lastCounts[i]! : estimateTokensText(text, cpt);
+      const m = messages[i]!;
+      const text = m.text;
+      let t: number;
+      if (text === lastTexts[i]) {
+        t = lastCounts[i]!;
+      } else if (precise && !m.streaming) {
+        t = countPrecise(text) ?? estimateTokensText(text, cpt);
+      } else {
+        t = estimateTokensText(text, cpt);
+      }
       texts[i] = text;
       counts[i] = t;
       total += t;
@@ -271,14 +353,6 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
   let burnSamples: BurnSample[] = [];
   let burnConvo: string | null = null;
 
-  // Reload/nav floor state. The restored estimate is a floor ONLY while
-  // the transcript is still rendering; it's released the moment the live
-  // DOM catches up to it, or after a short grace window, so a stale
-  // persisted high-water mark can't pin the bar after reload.
-  const FLOOR_GRACE_MS = 4000;
-  let floorConvo: string | null = null;
-  let floorReleased = false;
-  let floorSince = 0;
 
   // "Heaviest messages" — top token consumers, cycled on row click.
   const TOP_MIN_TOKENS = 500;
@@ -376,9 +450,10 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       if (settings.sites[adapter.id] === false) return hide();
 
       const convoId = adapter.conversationId(location);
-      if (!convoId) return hide();
-      const estimateReady = ensureEstimateCache(convoId);
-      if (!estimateReady && !visible) return;
+      if (!convoId) {
+        flushLedgerSave();
+        return hide();
+      }
 
       const fresh = wantFresh;
       wantFresh = false;
@@ -405,62 +480,82 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       if (!firstSeen.has(convoId)) firstSeen.set(convoId, Date.now());
       const now = Date.now();
 
-      const observedTokens = transcriptTokens(transcript.messages, settings.charsPerToken);
-      const matchingEstimate =
-        estimateCache && estimateCache.charsPerToken === settings.charsPerToken
-          ? estimateCache
-          : null;
-      // Convert duplicate chars at the transcript's MEASURED density, so
-      // dup numbers stay consistent with the headline estimate.
+      // Per-message counts (precise/heuristic) land in lastCounts as a side
+      // effect; liveSum is their sum over the CURRENTLY-VISIBLE messages.
+      const liveSum = transcriptTokens(transcript.messages, settings.charsPerToken);
+
+      // Virtualized lists (ChatGPT) mount only a scroll window, so the live
+      // sum bounces as messages scroll in/out. Accumulate by stable message
+      // id: each message counted once, kept after it unmounts, deduped on
+      // double-mount. Sites that render the whole transcript (claude.ai)
+      // have no ids → the live sum is already complete and stable.
+      const hasIds = transcript.messages.some((m) => m.id);
+      if (ledgerConvo !== convoId) {
+        flushLedgerSave();
+        ledgerConvo = convoId;
+        ledger = new Map();
+        ledgerDirty = false;
+        isIndexed = false;
+        promptVisible = false;
+        indexUI?.hide();
+        // Hydrate from disk; merge so any messages already upserted this
+        // session (fresher) aren't overwritten by the stored snapshot.
+        const seq = ++ledgerLoadSeq;
+        void loadLedger(adapter.id, convoId).then((stored) => {
+          if (seq !== ledgerLoadSeq || ledgerConvo !== convoId) return;
+          for (const [id, entry] of stored) {
+            if (!ledger.has(id)) ledger.set(id, entry);
+          }
+          scheduleRecompute();
+        });
+        void loadIndexedAt(adapter.id, convoId).then((at) => {
+          if (seq !== ledgerLoadSeq || ledgerConvo !== convoId) return;
+          isIndexed = at !== null;
+          if (isIndexed) {
+            promptVisible = false;
+            indexUI?.hide();
+          }
+          scheduleRecompute();
+        });
+        void enforceLedgerCap();
+      }
+      let observedTokens: number;
+      let messageCount: number;
+      let userTokens: number;
+      if (hasIds) {
+        const items: LedgerItem[] = [];
+        for (let i = 0; i < transcript.messages.length; i++) {
+          const m = transcript.messages[i]!;
+          if (m.id) items.push({ id: m.id, tokens: lastCounts[i] ?? 0, role: m.role });
+        }
+        const changed = ledgerHasChanges(items);
+        upsertLedger(ledger, items);
+        // Persist when the ledger grew or a settled count changed.
+        if (!transcript.anyStreaming && changed) {
+          ledgerDirty = true;
+          scheduleLedgerSave();
+        }
+        const t = ledgerTotals(ledger);
+        observedTokens = t.tokens;
+        messageCount = t.messages;
+        userTokens = t.userTokens;
+      } else {
+        observedTokens = liveSum;
+        messageCount = transcript.messages.length;
+        userTokens = 0;
+        for (let i = 0; i < transcript.messages.length; i++) {
+          if (transcript.messages[i]!.role === 'user') userTokens += lastCounts[i] ?? 0;
+        }
+      }
+
+      // Convert duplicate chars at the VISIBLE transcript's measured density.
       const observedBlendedCpt =
-        observedTokens > 0 ? transcript.charCount / observedTokens : settings.charsPerToken;
+        liveSum > 0 ? transcript.charCount / liveSum : settings.charsPerToken;
       const observedDupTokens = Math.round(waste.avoidableChars / Math.max(0.5, observedBlendedCpt));
 
-      // Floor release: as soon as the live transcript reaches the restored
-      // floor (caught up — no bounce), or the grace window lapses (a stale
-      // high floor that live will never reach — drop to live). Either way
-      // the bar converges to the live DOM rather than a frozen value.
-      if (floorConvo !== convoId) {
-        floorConvo = convoId;
-        floorReleased = false;
-        floorSince = now;
-        // A fully-rendered static page fires no more mutations, so ensure
-        // one recompute lands after the grace window to release the floor.
-        setTimeout(() => {
-          wantFresh = true;
-          scheduleRecompute();
-        }, FLOOR_GRACE_MS + 200);
-      }
-      const floorTokens = matchingEstimate?.tokens ?? 0;
-      if (
-        !floorReleased &&
-        !transcript.anyStreaming &&
-        (observedTokens >= floorTokens || now - floorSince > FLOOR_GRACE_MS)
-      ) {
-        floorReleased = true;
-      }
-
-      // Once released, trust the live DOM; only apply the restored floor
-      // during the active render window.
-      const merged = floorReleased
-        ? {
-            baseTokens: observedTokens,
-            messageCount: transcript.messages.length,
-            dupTokens: observedDupTokens,
-            dupBlocks: waste.blocks,
-          }
-        : mergeReloadEstimate(
-            {
-              observedTokens,
-              observedMessageCount: transcript.messages.length,
-              observedDupTokens,
-              observedDupBlocks: waste.blocks,
-            },
-            matchingEstimate
-          );
-      const baseTokens = merged.baseTokens;
-      // Attachment tokens are added AFTER the restored transcript floor so the
-      // cache never folds them back in on the next tick.
+      const baseTokens = observedTokens;
+      const dupTokens = observedDupTokens;
+      const dupBlocks = waste.blocks;
       const attachedTokens = attachmentTokens(convoId);
       const tokens = baseTokens + attachedTokens;
       const usagePct = budget > 0 ? (tokens / budget) * 100 : 0;
@@ -478,9 +573,9 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       if (!transcript.anyStreaming && transcript.charCount !== wasteAnalyzedAt) {
         scheduleWasteAnalysis(transcript.messages, transcript.charCount);
       }
-      // Sample once the transcript is fully loaded (cache not inflating
-      // past what we observe); the sampled total includes attachments.
-      if (!transcript.anyStreaming && observedTokens === baseTokens) {
+      // Sample burn from settled (not-streaming) states, using the
+      // displayed total (includes attachments) so the rate tracks reality.
+      if (!transcript.anyStreaming) {
         const lastSample = burnSamples[burnSamples.length - 1];
         if (!lastSample || lastSample.tokens !== tokens) {
           burnSamples.push({ at: now, tokens });
@@ -491,11 +586,8 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       const criticalTokens = (budget * settings.thresholds.critical) / 100;
       const minutesToCritical = minutesUntil(tokens, criticalTokens, perMin);
 
-      // Token breakdown: who's spending, and the heaviest messages.
-      let userTokens = 0;
-      for (let i = 0; i < transcript.messages.length; i++) {
-        if (transcript.messages[i]!.role === 'user') userTokens += lastCounts[i] ?? 0;
-      }
+      // Heaviest messages among those currently in the DOM (best effort on a
+      // virtualized list); userTokens was computed above.
       topHeavy = lastCounts
         .map((t, index) => ({ index, role: transcript.messages[index]!.role, tokens: t }))
         .filter((x) => x.tokens >= TOP_MIN_TOKENS)
@@ -505,29 +597,12 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
         ? { ordinal: topHeavy[0].index + 1, role: topHeavy[0].role, tokens: topHeavy[0].tokens }
         : null;
 
-      const { dupTokens, dupBlocks, messageCount } = merged;
       const adjustedPct = effectiveLoadPct({
         usagePct,
         messageCount,
         dupTokens,
         budget,
       });
-      // Persist only the SETTLED observed value (released + not streaming,
-      // never the floor or a partial render) so the stored estimate
-      // reflects what's truly in the conversation and can decrease.
-      if (floorReleased && !transcript.anyStreaming) {
-        rememberEstimate({
-          siteId: adapter.id,
-          conversationId: convoId,
-          tokens: observedTokens,
-          charsPerToken: settings.charsPerToken,
-          messageCount: transcript.messages.length,
-          charCount: transcript.charCount,
-          dupTokens: observedDupTokens,
-          dupBlocks: waste.blocks,
-          at: now,
-        });
-      }
 
       const stats: PillStats = {
         usagePct,
@@ -559,6 +634,20 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
       canStartHandoff = transcript.messages.length > 0 && !transcript.anyStreaming;
       handoff.onUpdate(transcript, convoId, tokens, settings.charsPerToken);
       refreshHandoffUI();
+
+      // Offer the indexing sweep on a virtualized chat that still has
+      // off-screen history and hasn't been swept yet.
+      lastStreaming = transcript.anyStreaming;
+      if (indexUI && indexer && !indexer.running()) {
+        const c = adapter.scrollContainer?.();
+        const hasHidden = !!c && c.scrollHeight > c.clientHeight + 200;
+        const wantPrompt = hasIds && !isIndexed && hasHidden && !transcript.anyStreaming;
+        if (wantPrompt !== promptVisible) {
+          promptVisible = wantPrompt;
+          if (wantPrompt) indexUI.showPrompt();
+          else indexUI.hide();
+        }
+      }
       if (!visible) {
         ui.show();
         visible = true;
@@ -582,8 +671,12 @@ export async function startMonitor(adapter: SiteAdapter): Promise<void> {
 
   const scheduleRecompute = debounce(recompute, RECOMPUTE_DEBOUNCE_MS);
 
+  loadPreciseIfEnabled();
+
   onSettingsChanged((next) => {
     settings = next;
+    usePreciseTokens = settings.features.preciseTokens;
+    loadPreciseIfEnabled();
     scheduleRecompute();
   });
 
